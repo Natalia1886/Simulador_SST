@@ -1,0 +1,11 @@
+name: mintrabajo_reporter_agent
+version: 0.1.0
+description: Simula el registro formal ante el Ministerio del Trabajo y la validación de licencias y cursos del responsable de SST
+skills_required:
+  - credential_validator
+  - pdf_report_generator
+permissions:
+  - official_reporting
+  - credential_verification
+input_schema: {}
+output_schema: {}

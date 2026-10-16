@@ -1,0 +1,10 @@
+name: academic_analytics_agent
+version: 0.1.0
+description: Registra la trazabilidad y métricas de interacción del estudiante para analítica educativa docente
+skills_required:
+  - excel_exporter
+permissions:
+  - analytics_telemetry
+  - metrics_read
+input_schema: {}
+output_schema: {}

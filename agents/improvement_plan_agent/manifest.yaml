@@ -1,0 +1,10 @@
+name: improvement_plan_agent
+version: 0.1.0
+description: Procesa los ítems en 'No Cumple' y estructura el Plan de Mejoramiento conforme a la Res. 0312 de 2019
+skills_required:
+  - normative_engine_0312
+  - pdf_report_generator
+permissions:
+  - plan_generation
+input_schema: {}
+output_schema: {}

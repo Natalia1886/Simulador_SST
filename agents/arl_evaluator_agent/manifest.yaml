@@ -1,0 +1,11 @@
+name: arl_evaluator_agent
+version: 0.1.0
+description: Simula la autoevaluación de estándares mínimos de la ARL (SURA), selección de tamaño/riesgo y validación por hash de archivos
+skills_required:
+  - normative_engine_0312
+  - evidence_hash_validator
+permissions:
+  - evaluation_read_write
+  - hash_verification
+input_schema: {}
+output_schema: {}
