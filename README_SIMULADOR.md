@@ -50,10 +50,10 @@ Para optimizar la infraestructura universitaria y brindar calificación automát
 
 ---
 
-## 🛠️ Tecnologías Sugeridas
+## 🛠️ Tecnologías 
 
 * **Frontend:** React / Tailwind CSS / HTML5
 * **Backend:** Node.js (Express) / Python (FastAPI o Django)
-* **Base de Datos:** PostgreSQL / MySQL
+* **Base de Datos:** PostgreSQL 
 * **Generación de Reportes:** PDFKit / Puppeteer
 * **Algoritmo de Validación:** SHA-256 (Crypto API nativa de navegador)

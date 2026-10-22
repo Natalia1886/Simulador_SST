@@ -84,8 +84,7 @@ Los agentes encapsulan el razonamiento, contexto de sesión y orquestación de r
 
 ### 4. Capa de Skills Propuestas — Prototipado Conceptual (`skills/`)
 
-> [!NOTE]
-> Las siguientes skills reemplazan las plantillas genéricas previas (`web_search`, `code_executor`, `db_query`, `document_generator`) y se plantean a nivel de **diseño conceptual y prototipado funcional**, orientadas al dominio SST sin implementación exhaustiva de producción.
+
 
 Todas las skills son **determinísticas, reutilizables y sin estado**, implementando la interfaz `BaseSkill` (`core/skill_base/base_skill.py`).
 
@@ -99,7 +98,7 @@ Todas las skills son **determinísticas, reutilizables y sin estado**, implement
 - **Propósito:** Implementar la estrategia *Zero-Storage* comparando el resumen criptográfico (SHA-256) de los documentos cargados por el alumno contra un catálogo de huellas maestras precargadas por el docente.
 - **Entrada conceptual (`input_schema`):** `{ "item_id": str, "file_hash": str, "file_name": str }`
 - **Salida conceptual (`output_schema`):** `{ "es_valido": bool, "tipo_resultado": str, "mensaje_retroalimentacion": str }`
-  *(Valores esperados: `VALIDO`, `CASCARITA_DETECTADA`, `DOCUMENTO_NO_VIGENTE`, `DOCUMENTO_ERRONEO`)*
+  *(Valores esperados: `VALIDO`, `DOCUMENTO_NO_VIGENTE`, `DOCUMENTO_ERRONEO`)*
 - **Alcance de prototipado:** Comparador determinístico de strings hash contra una tabla de referencia indexada por ítem.
 
 #### 3. `credential_validator` (Validador de Credenciales y Vigencias)

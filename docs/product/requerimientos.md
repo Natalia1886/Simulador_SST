@@ -2,7 +2,12 @@
 
 ## Proyecto: Simulador Web de Estándares Mínimos de SST (ARL Sura & Ministerio del Trabajo)
 
+
 ---
+
+RF00 - Pantalla de Selección de Simulador y Redirección Dinámica:
+
+El sistema debe presentar una página de bienvenida (Landing Page institucional) que contenga tarjetas o botones diferenciados para que el usuario elija entre el Simulador ARL (SURA) y el Simulador Ministerio del Trabajo. Al hacer clic en cualquiera de las opciones, la plataforma redirigirá al usuario a una interfaz de autenticación personalizada con los colores y la identidad visual de la entidad seleccionada. Tras un inicio de sesión exitoso, el sistema enrutará al estudiante directamente al panel o módulo correspondiente de dicha plataforma.
 
 ### 1. Gestión de Usuarios, Autenticación y Carga Académica
 
