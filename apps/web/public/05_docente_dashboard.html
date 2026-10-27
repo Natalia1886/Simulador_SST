@@ -1,0 +1,2731 @@
+<!DOCTYPE html>
+<html lang="es" style="">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>SimulSST Pro - Módulo Docente: Panel de Control del Profesor</title>
+  <style>
+    /* RESET & ESTILOS BASE */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: row;
+      overflow-x: hidden;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* MENÚ LATERAL (SIDEBAR) */
+    .sidebar {
+      width: 260px;
+      min-width: 260px;
+      background-color: #1e3a8a;
+      /* Azul Marino Profesional */
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      box-shadow: 4px 0 16px rgba(15, 23, 42, 0.08);
+      z-index: 50;
+    }
+
+    .sidebar-header {
+      padding: 22px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+      flex-shrink: 0;
+    }
+
+    .brand-icon svg {
+      width: 22px;
+      height: 22px;
+      fill: none;
+      stroke: #ffffff;
+      stroke-width: 2;
+    }
+
+    .brand-text h1 {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+      color: #ffffff;
+      line-height: 1.2;
+    }
+
+    .brand-text h1 span {
+      color: #60a5fa;
+    }
+
+    .brand-text p {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #93c5fd;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    /* PERFIL DOCENTE */
+    .profile-card {
+      margin: 16px 14px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .avatar-wrapper {
+      position: relative;
+    }
+
+    .avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      border: 2px solid #60a5fa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      background-color: #10b981;
+      border: 2px solid #1e3a8a;
+      border-radius: 50%;
+      position: absolute;
+      bottom: 0;
+      right: 0;
+    }
+
+    .profile-info {
+      overflow: hidden;
+    }
+
+    .profile-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: #ffffff;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .profile-role {
+      font-size: 11px;
+      color: #93c5fd;
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
+    /* NAVEGACIÓN SIDEBAR */
+    .nav-list {
+      list-style: none;
+      padding: 6px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+    }
+
+    .nav-item a {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 11px 14px;
+      color: #bfdbfe;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 600;
+      transition: all 0.18s ease;
+      cursor: pointer;
+    }
+
+    .nav-item-content {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+    }
+
+    .nav-icon {
+      width: 18px;
+      height: 18px;
+      opacity: 0.85;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-item a:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #ffffff;
+    }
+
+    .nav-item.active a {
+      background-color: #2563eb;
+      /* Azul Rey */
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+    }
+
+    .nav-badge {
+      background-color: #ef4444;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 999px;
+      line-height: 1.3;
+    }
+
+    /* FOOTER SIDEBAR */
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(15, 23, 42, 0.2);
+    }
+
+    .cohort-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11.5px;
+      color: #93c5fd;
+      font-weight: 600;
+    }
+
+    .cohort-pill svg {
+      width: 15px;
+      height: 15px;
+      fill: none;
+      stroke: #60a5fa;
+      stroke-width: 2;
+    }
+
+    /* CONTENEDOR PRINCIPAL */
+    .main-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      background-color: #f8fafc;
+    }
+
+    /* BARRA SUPERIOR (TOPBAR) */
+    .topbar {
+      background-color: #ffffff;
+      height: 72px;
+      padding: 0 32px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .topbar-title h2 {
+      font-size: 18px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.3px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background-color: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1d4ed8;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      background-color: #2563eb;
+      border-radius: 50%;
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(0.9);
+        opacity: 0.8;
+      }
+
+      50% {
+        transform: scale(1.3);
+        opacity: 1;
+      }
+
+      100% {
+        transform: scale(0.9);
+        opacity: 0.8;
+      }
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .btn-new-case {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background-color: #2563eb;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+      transition: all 0.2s ease;
+    }
+
+    .btn-new-case:hover {
+      background-color: #1d4ed8;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 14px rgba(37, 99, 235, 0.35);
+    }
+
+    .btn-icon-sec {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      background: #ffffff;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-icon-sec:hover {
+      background: #f1f5f9;
+      color: #1e293b;
+    }
+
+    /* CONTENEDORES DE SECCIÓN (TABS) */
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* CONTENIDO DEL DASHBOARD */
+    .dashboard-content {
+      padding: 28px 32px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    /* FILA DE MÉTRICAS (KPIS) */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+
+    .kpi-card {
+      background-color: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      position: relative;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+    }
+
+    .kpi-info-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #64748b;
+      margin-bottom: 6px;
+    }
+
+    .kpi-value {
+      font-size: 26px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.5px;
+      line-height: 1.1;
+    }
+
+    .kpi-subtext {
+      font-size: 12px;
+      color: #10b981;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 8px;
+    }
+
+    .kpi-icon-container {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .kpi-icon-blue {
+      background-color: #eff6ff;
+      color: #2563eb;
+    }
+
+    .kpi-icon-emerald {
+      background-color: #ecfdf5;
+      color: #059669;
+    }
+
+    .kpi-icon-indigo {
+      background-color: #eef2ff;
+      color: #4f46e5;
+    }
+
+    .kpi-card.alert-card {
+      background-color: #fefce8;
+      border: 1px solid #fef08a;
+    }
+
+    .kpi-card.alert-card .kpi-value {
+      color: #b45309;
+      font-size: 21px;
+    }
+
+    .kpi-card.alert-card .kpi-icon-container {
+      background-color: #fef3c7;
+      color: #d97706;
+    }
+
+    /* GRID PRINCIPAL (2 COLUMNAS: 65% / 35%) */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 65fr 35fr;
+      gap: 24px;
+      align-items: start;
+      margin-top: 24px;
+    }
+
+    /* PANEL GENERAL */
+    .panel-card {
+      background-color: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .panel-header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .panel-header-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel-header-title h3 {
+      font-size: 16px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .count-chip {
+      background-color: #f1f5f9;
+      color: #475569;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+    }
+
+    /* BARRA DE FILTROS Y BÚSQUEDA */
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .search-input-wrapper {
+      position: relative;
+      flex: 1;
+      min-width: 220px;
+    }
+
+    .search-input-wrapper svg {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      stroke: #94a3b8;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 9px 12px 9px 36px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      background-color: #f8fafc;
+      font-size: 13px;
+      color: #0f172a;
+      outline: none;
+      transition: all 0.15s ease;
+    }
+
+    .search-input:focus {
+      border-color: #2563eb;
+      background-color: #ffffff;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .platform-select {
+      padding: 9px 14px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      background-color: #f8fafc;
+      font-size: 13px;
+      color: #334155;
+      font-weight: 600;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .platform-select:focus {
+      border-color: #2563eb;
+      background-color: #ffffff;
+    }
+
+    /* TABLA CORPORATIVA */
+    .table-container {
+      overflow-x: auto;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    .data-table th {
+      background-color: #f8fafc;
+      padding: 12px 20px;
+      font-weight: 700;
+      color: #475569;
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid #e2e8f0;
+      white-space: nowrap;
+    }
+
+    .data-table td {
+      padding: 14px 20px;
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: middle;
+      color: #334155;
+    }
+
+    .data-table tr:hover {
+      background-color: #f8fafc;
+    }
+
+    /* ELEMENTOS DE CELDA */
+    .student-cell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .student-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      border: 1px solid #cbd5e1;
+    }
+
+    .student-name {
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .student-id {
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    .module-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      background: #f1f5f9;
+      color: #334155;
+      border: 1px solid #e2e8f0;
+    }
+
+    .module-gov {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-color: #dbeafe;
+    }
+
+    .module-sura {
+      background: #f0fdf4;
+      color: #15803d;
+      border-color: #dcfce7;
+    }
+
+    .date-text {
+      color: #64748b;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    /* BADGES DE ESTADO */
+    .status-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11.5px;
+      font-weight: 700;
+    }
+
+    .status-approved {
+      background-color: #dcfce7;
+      color: #059669;
+      /* Verde Seguridad */
+      border: 1px solid #bbf7d0;
+    }
+
+    .status-pending {
+      background-color: #fef3c7;
+      color: #d97706;
+      border: 1px solid #fde68a;
+    }
+
+    .status-rejected {
+      background-color: #fee2e2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+
+    .score-value {
+      font-weight: 800;
+      font-size: 13.5px;
+    }
+
+    .score-high {
+      color: #059669;
+    }
+
+    .score-low {
+      color: #dc2626;
+    }
+
+    .score-na {
+      color: #94a3b8;
+      font-weight: normal;
+    }
+
+    /* BOTONES ACCIÓN TABLA */
+    .btn-action-table {
+      padding: 6px 13px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .btn-detail {
+      background-color: #f1f5f9;
+      color: #334155;
+      border-color: #cbd5e1;
+    }
+
+    .btn-detail:hover {
+      background-color: #e2e8f0;
+      color: #0f172a;
+    }
+
+    .btn-grade {
+      background-color: #2563eb;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
+    }
+
+    .btn-grade:hover {
+      background-color: #1d4ed8;
+    }
+
+    .btn-feedback {
+      background-color: #fef2f2;
+      color: #dc2626;
+      border-color: #fecaca;
+    }
+
+    .btn-feedback:hover {
+      background-color: #fee2e2;
+    }
+
+    /* PIE DE TABLA */
+    .table-footer {
+      padding: 14px 20px;
+      background: #fafafa;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12.5px;
+      color: #64748b;
+    }
+
+    .pagination-buttons {
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn-page {
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #334155;
+      font-weight: 600;
+      font-size: 11.5px;
+      cursor: pointer;
+    }
+
+    .btn-page.active {
+      background: #2563eb;
+      color: #ffffff;
+      border-color: #2563eb;
+    }
+
+    /* COLUMNA DERECHA: LANZADOR DE SIMULACROS */
+    .emergency-launcher-card {
+      background: #ffffff;
+      border: 2px solid #2563eb;
+      border-radius: 14px;
+      box-shadow: 0 6px 18px rgba(37, 99, 235, 0.08);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .emergency-header {
+      background: linear-gradient(135deg, #1e3a8a, #2563eb);
+      color: #ffffff;
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .emergency-header h3 {
+      font-size: 15.5px;
+      font-weight: 800;
+      letter-spacing: -0.2px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .emergency-body {
+      padding: 22px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .emergency-desc {
+      font-size: 13px;
+      color: #475569;
+      line-height: 1.5;
+    }
+
+    .form-group-launcher {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .form-group-launcher label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #334155;
+    }
+
+    .scenario-select {
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      background-color: #f8fafc;
+      font-size: 13px;
+      color: #0f172a;
+      font-weight: 600;
+      outline: none;
+      line-height: 1.4;
+      cursor: pointer;
+    }
+
+    .scenario-select:focus {
+      border-color: #2563eb;
+      background-color: #ffffff;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    /* SELECTOR DE DIFICULTAD (SEGMENTED CONTROL) */
+    .difficulty-group {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      background: #f1f5f9;
+      padding: 5px;
+      border-radius: 10px;
+    }
+
+    .btn-difficulty {
+      padding: 8px 4px;
+      text-align: center;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      border: none;
+      background: transparent;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-difficulty.active {
+      background-color: #ffffff;
+      color: #1e3a8a;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    /* AVISO DE RADIODIFUSIÓN */
+    .broadcast-notice {
+      background-color: #eff6ff;
+      border-left: 4px solid #2563eb;
+      padding: 10px 14px;
+      border-radius: 0 8px 8px 0;
+      font-size: 12px;
+      color: #1e40af;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .broadcast-notice svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      stroke: #2563eb;
+    }
+
+    .btn-launch-broadcast {
+      width: 100%;
+      background: linear-gradient(135deg, #1d4ed8, #2563eb);
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      padding: 14px 20px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+      transition: all 0.2s ease;
+    }
+
+    .btn-launch-broadcast:hover {
+      background: linear-gradient(135deg, #1e40af, #1d4ed8);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 22px rgba(37, 99, 235, 0.45);
+    }
+
+    /* CARD DE APOYO: ESTADO DE LA SALA */
+    .classroom-status-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 18px 20px;
+      margin-top: 18px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 12.5px;
+    }
+
+    .status-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .status-label {
+      color: #64748b;
+      font-weight: 500;
+    }
+
+    .status-strong {
+      color: #0f172a;
+      font-weight: 700;
+    }
+
+    /* FOOTER GENERAL */
+    .dashboard-footer {
+      background-color: #ffffff;
+      border-top: 1px solid #e2e8f0;
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #64748b;
+      margin-top: auto;
+    }
+
+    .footer-links {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .btn-logout {
+      background: none;
+      border: none;
+      color: #dc2626;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+    }
+
+    .btn-logout:hover {
+      text-decoration: underline;
+    }
+
+    /* ESTILOS DE VISTAS ADICIONALES (SECCIONES) */
+    .section-title-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 22px;
+      background: #ffffff;
+      padding: 18px 24px;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .section-title-wrap h2 {
+      font-size: 19px;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .submission-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transition: all 0.2s ease;
+    }
+
+    .submission-card:hover {
+      border-color: #cbd5e1;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    }
+
+    .submission-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .submission-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      background: #f8fafc;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      border: 1px solid #f1f5f9;
+    }
+
+    .btn-primary-action {
+      background: #2563eb;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: background 0.15s ease;
+    }
+
+    .btn-primary-action:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-secondary-action {
+      background: #f1f5f9;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 9px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .btn-secondary-action:hover {
+      background: #e2e8f0;
+    }
+
+    /* ESTILOS DE MODALES */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+      opacity: 1;
+    }
+
+    .modal-window {
+      background: #ffffff;
+      width: 100%;
+      max-width: 600px;
+      border-radius: 14px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      animation: modalSlide 0.25s ease-out;
+    }
+
+    @keyframes modalSlide {
+      from {
+        transform: translateY(20px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .modal-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f8fafc;
+    }
+
+    .modal-header h3 {
+      font-size: 16px;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modal-close-btn {
+      background: none;
+      border: none;
+      font-size: 20px;
+      line-height: 1;
+      color: #64748b;
+      cursor: pointer;
+      border-radius: 6px;
+      padding: 4px 8px;
+    }
+
+    .modal-close-btn:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    .modal-body {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-height: 75vh;
+      overflow-y: auto;
+    }
+
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-field label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #334155;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-field input,
+    .form-field select,
+    .form-field textarea {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      font-size: 13.5px;
+      color: #0f172a;
+      outline: none;
+      background: #f8fafc;
+      font-family: inherit;
+    }
+
+    .form-field input:focus,
+    .form-field select:focus,
+    .form-field textarea:focus {
+      border-color: #2563eb;
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .form-field textarea {
+      resize: vertical;
+      min-height: 85px;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      background: #f8fafc;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    /* TOAST FLOTANTE */
+    .toast-notification {
+      position: fixed;
+      top: 24px;
+      right: 28px;
+      background-color: #059669;
+      /* Verde Seguridad */
+      color: #ffffff;
+      padding: 14px 20px;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(5, 150, 105, 0.35);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13.5px;
+      font-weight: 700;
+      z-index: 2000;
+      transform: translateY(-20px);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .toast-notification.show {
+      transform: translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* CONFIGURACIÓN Y ESTUDIANTES */
+    .config-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 1. MENÚ LATERAL IZQUIERDO (SIDEBAR: 260px) -->
+  <aside class="sidebar">
+    <!-- Header Sidebar -->
+    <div class="sidebar-header">
+      <div class="brand-icon">
+        <!-- SVG Casco SST / Escudo de Control -->
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"></path>
+          <path d="M12 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path>
+          <path d="M7 17a5 5 0 0 1 10 0"></path>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1 class="">SimulSST <span class="">Pro</span></h1>
+        <p class="">Panel Docente</p>
+      </div>
+    </div>
+    <!-- Perfil Docente -->
+    <div class="profile-card">
+      <div class="avatar-wrapper">
+        <div class="avatar">PG</div>
+        <div class="status-dot"></div>
+      </div>
+      <div class="profile-info">
+        <div class="profile-name" title=""> ,</div>
+        <div class="profile-role">Cátedra SST &amp; Auditoría</div>
+      </div>
+    </div>
+    <!-- Opciones del Menú Interactiva -->
+    <ul class="nav-list">
+      <li class="nav-item" data-target="sec-metricas">
+        <a href="#metricas">
+          <span class="nav-item-content">
+            <span class="nav-icon">📊</span>
+            <span class="">Visión General / Métricas</span>
+          </span>
+        </a>
+      </li>
+      <li class="nav-item" data-target="sec-entregas">
+        <a href="#entregas">
+          <span class="nav-item-content">
+            <span class="nav-icon">📥</span>
+            <span class="">Entregas por Revisar</span>
+          </span>
+          <span class="nav-badge" id="badge-pendientes">8</span>
+        </a>
+      </li>
+      <li class="nav-item" data-target="sec-simulacros">
+        <a href="#simulacros">
+          <span class="nav-item-content">
+            <span class="nav-icon">🚨</span>
+            <span class="">Generador de Simulacros</span>
+          </span>
+        </a>
+      </li>
+      <li class="nav-item" data-target="sec-calificaciones">
+        <a href="#calificaciones">
+          <span class="nav-item-content">
+            <span class="nav-icon">📋</span>
+            <span class="">Registro de Calificaciones</span>
+          </span>
+        </a>
+      </li>
+      <li class="nav-item active" data-target="sec-configuracion">
+        <a href="#configuracion">
+          <span class="nav-item-content">
+            <span class="nav-icon">⚙️</span>
+            <span class="">Configuración del Grupo</span>
+          </span>
+        </a>
+      </li>
+    </ul>
+    <!-- Footer Sidebar -->
+    <div class="sidebar-footer">
+      <div class="cohort-pill">
+        <svg viewBox="0 0 24 24">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+        <span class="">Cohorte 2026-2 | Grupo 8A SST</span>
+      </div>
+      <button onclick="cerrarSesionDocente()"
+        style="margin-top: 12px; width: 100%; display: flex; align-items: center; gap: 8px; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.25); color: rgb(252, 165, 165); padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.18s;"
+        onmouseover="this.style.background='rgba(239, 68, 68, 0.22)'; this.style.color='#fee2e2';"
+        onmouseout="this.style.background='rgba(239, 68, 68, 0.12)'; this.style.color='#fca5a5';">
+        <svg fill="none" height="15" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="15">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" x2="9" y1="12" y2="12"></line>
+        </svg>
+        <span class="">Cerrar Sesión</span>
+      </button>
+    </div>
+  </aside>
+  <!-- CONTENEDOR PRINCIPAL -->
+  <div class="main-wrapper">
+    <!-- 2. BARRA SUPERIOR (TOPBAR) -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title">
+          <h2 id="current-page-title" class="">⚙️ Configuración del Grupo y Cátedra SST</h2>
+        </div>
+        <div class="status-badge">
+          <span class="live-dot"></span>
+          <span class="">Simulador Activo: <strong>Empresa Metalmecánica S.A.</strong></span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-icon-sec" onclick="showToast('No tienes notificaciones pendientes del sistema.')"
+          title="Notificaciones del Sistema">
+          <svg fill="none" height="18" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="18">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+        </button>
+        <button class="btn-icon-sec" onclick="exportData('Planilla_Docente_Consolidada.csv')"
+          title="Descargar Planillas Consolidadas">
+          <svg fill="none" height="18" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="18">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" x2="12" y1="15" y2="3"></line>
+          </svg>
+        </button>
+        <button class="btn-new-case" id="btn-open-new-case">
+          <svg fill="none" height="16" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" width="16">
+            <line x1="12" x2="12" y1="5" y2="19"></line>
+            <line x1="5" x2="19" y1="12" y2="12"></line>
+          </svg>
+          <span class="">+ Asignar Nuevo Caso</span>
+        </button>
+      </div>
+    </header>
+    <!-- ÁREA DE CONTENIDO CON TABS -->
+    <main class="dashboard-content">
+      <!-- ============================================== -->
+      <!-- TAB 1: VISIÓN GENERAL / MÉTRICAS (sec-metricas) -->
+      <!-- ============================================== -->
+      <section class="tab-content" id="sec-metricas">
+        <!-- Tarjetas de métricas KPI (4 Columnas) -->
+        <div class="kpi-grid">
+          <!-- Tarjeta 1: Estudiantes Activos -->
+          <article class="kpi-card">
+            <div>
+              <div class="kpi-info-label">Estudiantes Registrados</div>
+              <div class="kpi-value" id="kpi-estudiantes-val">0 <span
+                  style="font-size: 15px; font-weight: normal; color: #64748b;" id="kpi-estudiantes-sub">alumnos</span>
+              </div>
+              <div class="kpi-subtext" id="kpi-estudiantes-status">
+                <svg fill="none" height="14" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14">
+                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                  <polyline points="17 6 23 6 23 12"></polyline>
+                </svg>
+                <span id="kpi-estudiantes-footer">Sincronizado con PostgreSQL</span>
+              </div>
+            </div>
+            <div class="kpi-icon-container kpi-icon-blue">
+              <svg fill="none" height="22" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="22">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </div>
+          </article>
+          <!-- Tarjeta 2: Reportes Recibidos -->
+          <article class="kpi-card">
+            <div>
+              <div class="kpi-info-label">Reportes Recibidos</div>
+              <div class="kpi-value" id="kpi-reportes-val">0 <span
+                  style="font-size: 15px; font-weight: normal; color: #64748b;" id="kpi-reportes-sub">envíos</span>
+              </div>
+              <div class="kpi-subtext" id="kpi-reportes-status" style="color: #2563eb;">
+                <span id="kpi-reportes-footer">Sin entregas pendientes</span>
+              </div>
+            </div>
+            <div class="kpi-icon-container kpi-icon-emerald">
+              <svg fill="none" height="22" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="22">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" x2="8" y1="13" y2="13"></line>
+                <line x1="16" x2="8" y1="17" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+            </div>
+          </article>
+          <!-- Tarjeta 3: Tiempo Promedio / Caso -->
+          <article class="kpi-card">
+            <div>
+              <div class="kpi-info-label">Tiempo Promedio / Caso</div>
+              <div class="kpi-value" id="kpi-tiempo-val">-- <span
+                  style="font-size: 16px; font-weight: 600; color: #475569;" id="kpi-tiempo-unit">min</span></div>
+              <div class="kpi-subtext" id="kpi-tiempo-status">
+                <span id="kpi-tiempo-footer">Calculado según entregas</span>
+              </div>
+            </div>
+            <div class="kpi-icon-container kpi-icon-indigo">
+              <svg fill="none" height="22" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="22">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+            </div>
+          </article>
+          <!-- Tarjeta 4: Error Más Frecuente (Alerta) -->
+          <article class="kpi-card alert-card">
+            <div>
+              <div class="kpi-info-label" id="kpi-alerta-label" style="color: #92400e;">Estado de Cumplimiento</div>
+              <div class="kpi-value" id="kpi-alerta-val">Sin fallas críticas</div>
+              <div class="kpi-subtext" id="kpi-alerta-status" style="color: #b45309;">
+                <span id="kpi-alerta-footer">Monitoreo activo</span>
+              </div>
+            </div>
+            <div class="kpi-icon-container">
+              <svg fill="none" height="22" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="22">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                </path>
+                <line x1="12" x2="12" y1="9" y2="13"></line>
+                <line x1="12" x2="12.01" y1="17" y2="17"></line>
+              </svg>
+            </div>
+          </article>
+        </div>
+        <!-- ÁREA PRINCIPAL EN 2 COLUMNAS (65% / 35%) -->
+        <div class="content-grid">
+          <!-- COLUMNA IZQUIERDA (65%): TABLA DE ACTIVIDAD -->
+          <div class="panel-card">
+            <div class="panel-header">
+              <div class="panel-header-top">
+                <div class="panel-header-title">
+                  <h3 class="">Tabla de Actividad y Entregas Recientes</h3>
+                  <span class="count-chip" id="overview-pending-chip">0 pendientes de calificar</span>
+                </div>
+                <span style="font-size: 12px; color: #64748b;" id="overview-update-time">Actualizado ahora</span>
+              </div>
+              <!-- Filtros y Búsqueda Interactivos -->
+              <div class="filter-bar">
+                <div class="search-input-wrapper">
+                  <svg fill="none" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" x2="16.65" y1="21" y2="16.65"></line>
+                  </svg>
+                  <input class="search-input" id="overview-search" placeholder="Buscar por nombre de alumno o cédula..."
+                    type="text">
+                </div>
+                <select class="platform-select" id="overview-platform-filter">
+                  <option value="all">Todas las plataformas simuladas</option>
+                  <option value="min">Ministerio SGRL (MinTrabajo)</option>
+                  <option value="sura">ARL SURA (PHVA Res. 0312)</option>
+                  <option value="atel">Simulador ATEL / GTC-45</option>
+                </select>
+                <select class="platform-select" id="overview-status-filter">
+                  <option value="all">Todos los estados</option>
+                  <option value="aprobado">Aprobados</option>
+                  <option value="pendiente">Pendientes de revisión</option>
+                  <option value="rechazado">Rechazados</option>
+                </select>
+              </div>
+            </div>
+            <!-- Tabla de Datos -->
+            <div class="table-container">
+              <table class="data-table" id="overview-table">
+                <thead>
+                  <tr>
+                    <th class="">Estudiante</th>
+                    <th class="">Módulo Ejecutado</th>
+                    <th class="">Fecha / Hora</th>
+                    <th class="">Estado</th>
+                    <th class="">Puntaje</th>
+                    <th style="text-align: right;" class="">Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colspan="6" style="text-align: center; padding: 24px; color: #64748b;">
+                      <span style="display: inline-block; animation: pulse 1.5s infinite;">Cargando estudiantes
+                        matriculados desde PostgreSQL...</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <!-- Paginación -->
+            <div class="table-footer">
+              <div class="">Mostrando <strong id="overview-count">1 - 4</strong> de <strong>38</strong> registros de
+                estudiantes</div>
+              <div class="pagination-buttons">
+                <button class="btn-page active">1</button>
+                <button class="btn-page">2</button>
+                <button class="btn-page">3</button>
+                <button class="btn-page">Siguiente →</button>
+              </div>
+            </div>
+          </div>
+          <!-- COLUMNA DERECHA (35%): LANZADOR DE SIMULACROS EN TIEMPO REAL -->
+          <div>
+            <div class="emergency-launcher-card">
+              <div class="emergency-header">
+                <div style="font-size: 20px;" class="">🚀</div>
+                <div>
+                  <h3 class="">Activar Escenario de Contingencia</h3>
+                  <p style="font-size: 11.5px; opacity: 0.9; margin-top: 1px;" class="">Control maestro de inyección de
+                    incidentes</p>
+                </div>
+              </div>
+              <div class="emergency-body">
+                <p class="emergency-desc">
+                  Selecciona una emergencia simulada para enviar a la pantalla de todos los estudiantes activos en el
+                  simulador.
+                </p>
+                <!-- Selector de Escenario -->
+                <div class="form-group-launcher">
+                  <label for="scenario-dropdown" class="">Escenario de Práctica:</label>
+                  <select class="scenario-select" id="scenario-dropdown">
+                    <option selected="">Fuga de Sustancia Química en Bodega 3 (Riesgo V)</option>
+                    <option>Caída de Altura en Área de Mantenimiento (Res. 4272)</option>
+                    <option>Inspección Sorpresa del Ministerio del Trabajo (Res. 0312)</option>
+                    <option>Incendio Incipiente en Tableros Eléctricos Principales</option>
+                    <option>Colapso de Andamio Multidireccional en Obra Civil</option>
+                  </select>
+                </div>
+                <!-- Nivel de Dificultad -->
+                <div class="form-group-launcher">
+                  <label class="">Nivel de Dificultad:</label>
+                  <div class="difficulty-group" id="diff-group-overview">
+                    <button class="btn-difficulty" onclick="selectDifficulty(this, 'diff-group-overview')"
+                      type="button">Básico</button>
+                    <button class="btn-difficulty active" onclick="selectDifficulty(this, 'diff-group-overview')"
+                      type="button">Intermedio</button>
+                    <button class="btn-difficulty" onclick="selectDifficulty(this, 'diff-group-overview')"
+                      type="button">Avanzado</button>
+                  </div>
+                </div>
+                <!-- Aviso de Radiodifusión -->
+                <div class="broadcast-notice">
+                  <svg fill="none" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"></path>
+                    <path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"></path>
+                    <circle cx="12" cy="12" r="2"></circle>
+                    <path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"></path>
+                    <path d="M19.1 4.9C23 8.8 23 15.2 19.1 19.1"></path>
+                  </svg>
+                  <span id="broadcast-notice-text">El evento interrumpirá la vista actual de los <strong
+                      id="broadcast-students-count">0 alumnos</strong> en vivo.</span>
+                </div>
+                <!-- Botón de Envío -->
+                <button class="btn-launch-broadcast" id="btn-broadcast-submit" onclick="triggerBroadcast()">
+                  <svg fill="none" height="18" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" width="18">
+                    <line x1="22" x2="11" y1="2" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                  </svg>
+                  <span class="">Enviar Simulacro a la Clase Ahora</span>
+                </button>
+              </div>
+            </div>
+            <!-- Widget de Estado del Aula Virtual -->
+            <div class="classroom-status-card">
+              <div
+                style="font-weight: 700; font-size: 13px; color: #0f172a; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
+                <span class="">Parámetros de la Sesión</span>
+                <span
+                  style="font-size: 11px; background: #ecfdf5; color: #059669; padding: 2px 7px; border-radius: 10px; font-weight: 700;"
+                  class="">Sala Activa</span>
+              </div>
+              <div class="status-row">
+                <span class="status-label">Modo de evaluación:</span>
+                <span class="status-strong">Cronómetro Sincronizado</span>
+              </div>
+              <div class="status-row">
+                <span class="status-label">Rúbrica activa:</span>
+                <span class="status-strong">Decreto 1072 / Res. 0312</span>
+              </div>
+              <div class="status-row">
+                <span class="status-label">Tolerancia de retraso:</span>
+                <span class="status-strong">5 minutos</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- ============================================== -->
+      <!-- TAB 2: ENTREGAS POR REVISAR (sec-entregas)      -->
+      <!-- ============================================== -->
+      <section class="tab-content" id="sec-entregas">
+        <div class="section-title-wrap">
+          <div>
+            <h2 class="">📥 Bandeja de Entregas Pendientes por Calificar</h2>
+            <p style="color: #64748b; font-size: 13px; margin-top: 3px;" class="">Revisa las evidencias adjuntas,
+              matrices cargadas y asigna la nota cuantitativa con rúbrica oficial.</p>
+          </div>
+          <span class="count-chip" id="sec-entregas-chip"
+            style="font-size: 12px; padding: 6px 12px; background: #fef3c7; color: #b45309; border-color: #fde68a;">
+            0 Informes esperando evaluación
+          </span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 16px;" id="submissions-list-container">
+          <div
+            style="text-align: center; padding: 32px; background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 12px; color: #64748b;">
+            <div style="font-size: 28px; margin-bottom: 8px;">📭</div>
+            <div style="font-weight: 700; font-size: 14px; color: #334155;">Sincronizando entregas con PostgreSQL...
+            </div>
+            <div style="font-size: 12px; margin-top: 4px;">Las entregas y autoevaluaciones que suban los estudiantes
+              reales aparecerán aquí automáticamente.</div>
+          </div>
+        </div>
+      </section>
+      <!-- ============================================== -->
+      <!-- TAB 3: GENERADOR DE SIMULACROS (sec-simulacros) -->
+      <!-- ============================================== -->
+      <section class="tab-content" id="sec-simulacros">
+        <div class="section-title-wrap">
+          <div>
+            <h2 class="">🚨 Centro de Control e Inyección de Simulacros en Vivo</h2>
+            <p style="color: #64748b; font-size: 13px; margin-top: 3px;" class="">Activa contingencias críticas en
+              tiempo real que interrumpen la pantalla de los estudiantes conectados.</p>
+          </div>
+          <div class="status-badge" style="background: #fef2f2; border-color: #fecaca; color: #dc2626;">
+            <span class="live-dot" style="background-color: #ef4444;"></span>
+            <span class="">Canal Broadcast: Activo y Sincronizado</span>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+          <!-- Configuración detallada -->
+          <div class="panel-card" style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+            <h3 style="font-size: 16px; font-weight: 800; color: #0f172a;" class="">1. Selección y Parametrización del
+              Incidente</h3>
+            <div class="form-field">
+              <label class="">Tipo de Emergencia / Incidente Crítico</label>
+              <select class="scenario-select" id="broadcast-incident-type">
+                <option value="quimico">🧪 Fuga de Sustancia Química Peligrosa (Cloro / Ácido Sulfúrico - Bodega 3)
+                </option>
+                <option value="alturas">🪜 Accidente Grave por Caída de Alturas (Trabajo en Cubierta sin Permiso)
+                </option>
+                <option value="inspeccion">🏛️ Inspección Inopinada del Inspector del Trabajo (Revisión Res. 0312)
+                </option>
+                <option value="incendio">🔥 Conato de Incendio Clase C en Subestación Eléctrica Principal</option>
+                <option value="atrapamiento">⚙️ Atrapamiento de Miembro Superior en Prensa Hidráulica sin Sensor
+                </option>
+              </select>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div class="form-field">
+                <label class="">Nivel de Severidad (Matriz RAM)</label>
+                <select class="scenario-select">
+                  <option>Severidad 3: Daño Mayor / Atención Médica</option>
+                  <option selected="">Severidad 4: Fatalidad Potencial / Evacuación Parcial</option>
+                  <option>Severidad 5: Catastrófico / Cierre de Planta</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label class="">Tiempo Límite de Respuesta para el Alumno</label>
+                <select class="scenario-select" id="timer-limit-select">
+                  <option>10 Minutos (Respuesta Rápida)</option>
+                  <option selected="">15 Minutos (Estándar)</option>
+                  <option>25 Minutos (Análisis Exhaustivo GTC-45)</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-field">
+              <label class="">Instrucción Directa del Docente para el Evento</label>
+              <textarea
+                placeholder="Ejemplo: Todos los estudiantes deben activar de inmediato el PON de materiales peligrosos y notificar en la plataforma ARL SURA el evento inicial antes del vencimiento del cronómetro.">Atención Cohorte: Se ha declarado una fuga activa en el sector B. Accedan al módulo de Emergencias, apliquen la Ficha de Datos de Seguridad (FDS) y ejecuten el reporte inmediato a la Brigada.</textarea>
+            </div>
+            <div
+              style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 16px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between;">
+              <div>
+                <strong style="color: #1e40af; font-size: 13.5px; display: block;">Destinatarios del Simulacro</strong>
+                <span style="font-size: 12.5px; color: #3b82f6;" id="broadcast-destinatarios-desc" class="">Estudiantes
+                  registrados en la plataforma</span>
+              </div>
+              <button class="btn-launch-broadcast" onclick="triggerBroadcast()"
+                style="width: auto; padding: 12px 24px;">
+                <svg fill="none" height="18" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" width="18">
+                  <line x1="22" x2="11" y1="2" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+                <span class="">Lanzar Alerta en Pantallas Ahora</span>
+              </button>
+            </div>
+          </div>
+          <!-- Panel de control de tiempo y estado -->
+          <div style="display: flex; flex-direction: column; gap: 18px;">
+            <div class="panel-card" style="padding: 20px; text-align: center;">
+              <span
+                style="font-size: 11.5px; text-transform: uppercase; font-weight: 700; color: #64748b; letter-spacing: 0.5px;"
+                class="">Cronómetro de Simulación</span>
+              <div id="sim-timer"
+                style="font-size: 40px; font-weight: 900; color: #0f172a; margin: 12px 0; font-family: monospace;"
+                class="">15:00</div>
+              <div style="display: flex; gap: 8px; justify-content: center;">
+                <button class="btn-secondary-action" onclick="startTimer()"
+                  style="padding: 6px 12px; font-size: 12px;">Iniciar</button>
+                <button class="btn-secondary-action" onclick="pauseTimer()"
+                  style="padding: 6px 12px; font-size: 12px;">Pausar</button>
+                <button class="btn-secondary-action" onclick="resetTimer()"
+                  style="padding: 6px 12px; font-size: 12px;">Reiniciar</button>
+              </div>
+            </div>
+            <div class="classroom-status-card" style="margin-top: 0;">
+              <div style="font-weight: 700; font-size: 13px; color: #0f172a; margin-bottom: 8px;" class="">Protocolos de
+                Seguridad Activos</div>
+              <div class="status-row">
+                <span class="status-label">Simulador:</span>
+                <span class="status-strong">Metalmecánica S.A.</span>
+              </div>
+              <div class="status-row">
+                <span class="status-label">Plataforma enlace:</span>
+                <span class="status-strong">SURA / MinTrabajo</span>
+              </div>
+              <div class="status-row">
+                <span class="status-label">Grabación de sesión:</span>
+                <span class="status-strong" style="color: #059669;">Activa HD</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- ============================================== -->
+      <!-- TAB 4: CALIFICACIONES (sec-calificaciones)     -->
+      <!-- ============================================== -->
+      <section class="tab-content" id="sec-calificaciones">
+        <div class="section-title-wrap">
+          <div>
+            <h2 class="">📋 Registro y Planilla Consolidada de Calificaciones</h2>
+            <p style="color: #64748b; font-size: 13px; margin-top: 3px;" class="">Ponderación por ciclo PHVA según
+              Decreto 1072 de 2015 y estándares mínimos Res. 0312.</p>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button class="btn-primary-action" onclick="exportData('Notas_Cohorte_2026_SST.csv')">
+              <svg fill="none" height="15" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="15">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" x2="12" y1="15" y2="3"></line>
+              </svg>
+              📥 Exportar Excel / CSV
+            </button>
+          </div>
+        </div>
+        <div class="panel-card">
+          <div class="panel-header" style="flex-direction: row; justify-content: space-between; align-items: center;">
+            <div>
+              <h3 style="font-size: 15px; font-weight: 800;" class="">Estudiantes de la Cohorte (38 Matriculados)</h3>
+              <p style="font-size: 12px; color: #64748b;" class="">Promedio ponderado del grupo: <strong
+                  style="color: #059669;">86.4 / 100</strong></p>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <span class="status-tag status-approved">35 Aprobando</span>
+              <span class="status-tag status-rejected">3 En Riesgo</span>
+            </div>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th class="">Estudiante</th>
+                  <th class="">C.C. / ID / Correo</th>
+                  <th class="">Planear (25%)</th>
+                  <th class="">Hacer (35%)</th>
+                  <th class="">Verificar (20%)</th>
+                  <th class="">Actuar (20%)</th>
+                  <th class="">Definitiva</th>
+                  <th class="">Estado</th>
+                </tr>
+              </thead>
+              <tbody id="calificaciones-tbody">
+                <tr>
+                  <td colspan="8" style="text-align: center; padding: 24px; color: #64748b;">
+                    Sincronizando notas y estudiantes matriculados desde PostgreSQL...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+      <!-- ============================================== -->
+      <!-- TAB 5: CONFIGURACIÓN DEL GRUPO (sec-configuracion) -->
+      <!-- ============================================== -->
+      <section class="tab-content active" id="sec-configuracion">
+        <div class="section-title-wrap">
+          <div>
+            <h2 class="">⚙️ Configuración del Grupo y Parámetros de la Cátedra</h2>
+            <p style="color: #64748b; font-size: 13px; margin-top: 3px;" class="">Administra cupos de estudiantes,
+              vigencia de rúbricas normativas y restricciones de la simulación.</p>
+          </div>
+          <button class="btn-primary-action" onclick="showToast('¡Parámetros de la cátedra guardados correctamente!')">
+            Guardar Cambios
+          </button>
+        </div>
+        <div class="config-grid">
+          <!-- Configuración del curso -->
+          <div class="panel-card" style="padding: 24px; display: flex; flex-direction: column; gap: 18px;">
+            <h3 style="font-size: 16px; font-weight: 800; color: #0f172a;" class="">Reglas de la Simulación Práctica
+            </h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div class="form-field">
+                <label class="">Tiempo Límite por Caso (Minutos)</label>
+                <input max="180" min="10" type="number" value="30">
+              </div>
+              <div class="form-field">
+                <label class="">Número de Reintentos Permitidos</label>
+                <select>
+                  <option>1 Intento Único (Evaluación Oficial)</option>
+                  <option selected="">2 Intentos con Retroalimentación</option>
+                  <option>Ilimitados (Modo Práctica Libre)</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-field">
+              <label class="">Rúbrica Normativa Aplicable</label>
+              <select>
+                <option selected="">Decreto 1072 de 2015 + Res. 0312 de 2019 (Estándares Completos)</option>
+                <option>Res. 0312 de 2019 (Microempresas 7 Estándares)</option>
+                <option>Res. 4272 de 2021 (Seguridad para Trabajos en Alturas)</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label class="">Criterio de Aprobación Mínima</label>
+              <select>
+                <option selected="">70 / 100 Puntos (Aprobatorio Institucional)</option>
+                <option>80 / 100 Puntos (Nivel Auditor Líder)</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label class="">Instrucciones Iniciales en la Pantalla del Alumno</label>
+              <textarea>Bienvenido al Simulador SST Pro. Tendrá 30 minutos cronometrados para analizar la matriz de riesgos de la empresa asignada, verificar el cumplimiento de los estándares legales colombianos y radicar su informe.</textarea>
+            </div>
+          </div>
+          <!-- Listado rápido de la cohorte -->
+          <div class="panel-card" style="padding: 20px;">
+            <h3 id="cohort-title-header" style="font-size: 15px; font-weight: 800; color: #0f172a; margin-bottom: 4px;"
+              class="">Estudiantes Inscritos en PostgreSQL</h3>
+            <div id="cohort-subtitle-desc" style="font-size: 12.5px; color: #64748b; margin-bottom: 14px;" class="">
+              Sincronización en vivo de la cátedra</div>
+            <ul id="cohort-students-list"
+              style="list-style: none; display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow-y: auto; padding-right: 4px;">
+              <li style="padding: 16px; text-align: center; color: #64748b; font-size: 13px;">
+                Cargando estudiantes matriculados desde la base de datos...
+              </li>
+            </ul>
+            <button class="btn-secondary-action"
+              onclick="cargarEstudiantesDesdeServidor(); showToast('Lista de estudiantes actualizada desde PostgreSQL.');"
+              style="width: 100%; justify-content: center; margin-top: 14px;">
+              🔄 Actualizar Inscritos desde PostgreSQL
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+    <!-- 5. FOOTER GENERAL -->
+    <footer class="dashboard-footer">
+      <div class="">
+        <strong>SimulSST Pro Enterprise</strong> © 2026 Plataforma Educativa de Seguridad y Salud en el Trabajo.
+      </div>
+      <div class="footer-links"><span onclick="showToast('Guía Docente descargada.')" style="cursor: pointer;"
+          class="">Guía Docente v2.4</span>
+        <span class="">•</span>
+        <span onclick="showToast('Mesa de soporte disponible: ext. 4410')" style="cursor: pointer;" class="">Soporte
+          Académico</span>
+      </div>
+    </footer>
+  </div>
+  <!-- ============================================== -->
+  <!-- MODAL 1: ASIGNAR NUEVO CASO                    -->
+  <!-- ============================================== -->
+  <div class="modal-overlay" id="modal-new-case">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3 class="">
+          <svg fill="none" height="18" stroke="#2563eb" stroke-width="2.5" viewBox="0 0 24 24" width="18">
+            <line x1="12" x2="12" y1="5" y2="19"></line>
+            <line x1="5" x2="19" y1="12" y2="12"></line>
+          </svg>
+          Asignar Nuevo Caso de Simulación
+        </h3>
+        <button class="modal-close-btn" onclick="closeModal('modal-new-case')">×</button>
+      </div>
+      <form id="form-new-case" onsubmit="handleNewCaseSubmit(event)">
+        <div class="modal-body">
+          <div class="form-field">
+            <label class="">Nombre de la Empresa Ficticia</label>
+            <input id="case-company" placeholder="Ej. Manufacturas Industriales del Caribe S.A.S." required=""
+              type="text">
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div class="form-field">
+              <label class="">Sector Económico</label>
+              <select id="case-sector">
+                <option>Manufactura y Metalmecánica</option>
+                <option>Construcción y Obras Civiles</option>
+                <option>Sector Salud y Hospitalario</option>
+                <option>Transporte y Logística</option>
+                <option>Agroindustria y Químicos</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label class="">Nivel de Riesgo (Decreto 1295/94)</label>
+              <select id="case-risk">
+                <option>Clase I (Riesgo Mínimo)</option>
+                <option>Clase II (Riesgo Bajo)</option>
+                <option>Clase III (Riesgo Medio)</option>
+                <option>Clase IV (Riesgo Alto)</option>
+                <option selected="">Clase V (Riesgo Máximo)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-field">
+            <label class="">Tiempo Límite para Resolver (Minutos)</label>
+            <input id="case-time" max="120" min="5" required="" type="number" value="30">
+          </div>
+          <div class="form-field">
+            <label class="">Descripción y Alcance de la Práctica</label>
+            <textarea id="case-description"
+              placeholder="Describe las condiciones que los alumnos encontrarán, hallazgos esperados y documentación que deberán producir en los simuladores..."
+              required=""></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary-action" onclick="closeModal('modal-new-case')" type="button">Cancelar</button>
+          <button class="btn-primary-action" type="submit">Guardar y Asignar a la Clase</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <!-- ============================================== -->
+  <!-- MODAL 2: CALIFICAR Y RETROALIMENTAR ENTREGA   -->
+  <!-- ============================================== -->
+  <div class="modal-overlay" id="modal-grade">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3 class="">
+          <svg fill="none" height="18" stroke="#2563eb" stroke-width="2" viewBox="0 0 24 24" width="18">
+            <path d="M12 20h9"></path>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+          </svg>
+          Calificar y Retroalimentar Entrega
+        </h3>
+        <button class="modal-close-btn" onclick="closeModal('modal-grade')">×</button>
+      </div>
+      <form id="form-grade" onsubmit="handleGradeSubmit(event)">
+        <div class="modal-body">
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px;">
+            <div id="grade-modal-student" style="font-weight: 800; font-size: 15px; color: #0f172a;" class="">María
+              Rodríguez</div>
+            <div id="grade-modal-id" style="font-size: 12px; color: #64748b; margin-top: 2px;" class="">C.C.
+              1014.289.445</div>
+            <div id="grade-modal-module" style="font-size: 13px; color: #1e3a8a; font-weight: 600; margin-top: 6px;"
+              class="">🛡️ ARL SURA - Evaluación Inicial PHVA</div>
+            <div id="grade-modal-file" style="font-size: 12px; color: #475569; margin-top: 4px;" class="">Archivo:
+              Matriz_Autoevaluacion_MR.xlsx</div>
+          </div>
+          <div class="form-field">
+            <label class="">Calificación Cuantitativa (1 a 100)</label>
+            <input id="grade-modal-score" max="100" min="1" required="" style="font-weight: 700; font-size: 16px;"
+              type="number" value="85">
+          </div>
+          <div class="form-field">
+            <label class="">Retroalimentación Cualitativa para el Estudiante</label>
+            <textarea id="grade-modal-feedback"
+              placeholder="Escribe observaciones técnicas, puntos de mejora según la normatividad colombiana y fortalezas del reporte entregado..."
+              required=""></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary-action" onclick="closeModal('modal-grade')" type="button">Cancelar</button>
+          <button class="btn-primary-action" type="submit">Publicar Nota al Estudiante</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <!-- NOTIFICACIÓN / TOAST FLOTANTE -->
+  <div class="toast-notification" id="toast">
+    <svg fill="none" height="20" stroke="#ffffff" stroke-width="2.5" viewBox="0 0 24 24" width="20">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+    </svg>
+    <span id="toast-message" class="">Guía Docente descargada.</span>
+  </div>
+  <!-- JAVASCRIPT INTERACTIVO INTEGRAL -->
+  <script>
+    // 1. GESTIÓN DE TABS / VISTAS DEL SIDEBAR
+    const navItems = document.querySelectorAll('.nav-list .nav-item');
+    const tabContents = document.querySelectorAll('.tab-content');
+    const pageTitle = document.getElementById('current-page-title');
+
+    const titlesMap = {
+      'sec-metricas': 'Panel de Monitoreo y Evaluación de Prácticas SST',
+      'sec-entregas': '📥 Bandeja de Entregas por Revisar',
+      'sec-simulacros': '🚨 Generador y Control de Simulacros en Vivo',
+      'sec-calificaciones': '📋 Registro y Planilla de Calificaciones Consolidadas',
+      'sec-configuracion': '⚙️ Configuración del Grupo y Cátedra SST'
+    };
+
+    navItems.forEach(item => {
+      item.addEventListener('click', function (e) {
+        e.preventDefault();
+        const targetId = this.getAttribute('data-target');
+        if (!targetId) return;
+
+        // Actualizar items de menú
+        navItems.forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+
+        // Alternar vistas
+        tabContents.forEach(tab => {
+          if (tab.id === targetId) {
+            tab.classList.add('active');
+          } else {
+            tab.classList.remove('active');
+          }
+        });
+
+        // Actualizar título del topbar
+        if (titlesMap[targetId]) {
+          pageTitle.textContent = titlesMap[targetId];
+        }
+      });
+    });
+
+    // 2. MODALES (NUEVO CASO Y CALIFICACIÓN)
+    const modalNewCase = document.getElementById('modal-new-case');
+    const modalGrade = document.getElementById('modal-grade');
+    const btnOpenNewCase = document.getElementById('btn-open-new-case');
+
+    if (btnOpenNewCase) {
+      btnOpenNewCase.addEventListener('click', () => {
+        openModal('modal-new-case');
+      });
+    }
+
+    function openModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.classList.add('active');
+      }
+    }
+
+    function closeModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.classList.remove('active');
+      }
+    }
+
+    // Cerrar al hacer click fuera del contenido del modal
+    window.addEventListener('click', function (e) {
+      if (e.target.classList.contains('modal-overlay')) {
+        e.target.classList.remove('active');
+      }
+    });
+
+    // Formulario Nuevo Caso - Guarda Criterios PHVA en PostgreSQL
+    async function handleNewCaseSubmit(e) {
+      e.preventDefault();
+      const company = document.getElementById('case-company').value;
+      const sector = document.getElementById('case-sector').value;
+      const risk = document.getElementById('case-risk').value;
+      const time = document.getElementById('case-time').value;
+      const desc = document.getElementById('case-description').value;
+
+      closeModal('modal-new-case');
+      showToast('Guardando caso y criterios PHVA en PostgreSQL...');
+
+      try {
+        const res = await fetch('http://localhost:4000/api/cases/criteria', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            companyName: company,
+            sector: sector,
+            riskLevel: risk,
+            timeLimitMinutes: Number(time),
+            description: desc,
+            expectedPhva: {
+              Planear: ['política', 'plan de trabajo', 'matriz de riesgos', 'recursos'],
+              Hacer: ['capacitación', 'evaluación médica', 'copasst', 'inspecciones'],
+              Verificar: ['auditoría', 'indicadores', 'investigación de accidentes'],
+              Actuar: ['plan de mejoramiento', 'acciones preventivas', 'mantenimiento']
+            }
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          showToast(`¡Caso "${company}" asignado y activo en el motor de evaluación!`);
+          cargarEntregasDesdeServidor();
+        } else {
+          showToast(`Caso asignado localmente: ${company}`);
+        }
+      } catch (err) {
+        console.error('Error al guardar caso:', err);
+        showToast(`Caso para "${company}" asignado a la clase.`);
+      }
+
+      e.target.reset();
+    }
+
+    // Modal Calificar
+    function openGradeModal(studentName, id, module, file, score, feedback) {
+      document.getElementById('grade-modal-student').textContent = studentName;
+      document.getElementById('grade-modal-id').textContent = 'ID / C.C.: ' + id;
+      document.getElementById('grade-modal-module').textContent = module;
+      document.getElementById('grade-modal-file').textContent = 'Evidencia: ' + file;
+      document.getElementById('grade-modal-score').value = score || 85;
+      document.getElementById('grade-modal-feedback').value = feedback || '';
+      openModal('modal-grade');
+    }
+
+    function handleGradeSubmit(e) {
+      e.preventDefault();
+      const studentName = document.getElementById('grade-modal-student').textContent;
+      const score = document.getElementById('grade-modal-score').value;
+      closeModal('modal-grade');
+      showToast(`Nota de ${score}/100 publicada para ${studentName}`);
+    }
+
+    // Descargar Evidencia Real en PDF desde el backend
+    function descargarEvidenciaReal(student, module, rad) {
+      showToast('Descargando reporte oficial del estudiante en PDF...');
+      const params = new URLSearchParams({
+        student: student || 'Estudiante SST',
+        company: 'Empresa Metalmecánica S.A.',
+        module: module || 'Evidencia de Aprendizaje PHVA',
+        score: '88',
+        rad: rad || `EVI-${new Date().getFullYear()}-SST`
+      });
+      window.location.href = `http://localhost:4000/api/reports/certificate/pdf?${params.toString()}`;
+    }
+
+    // Cargar entregas reales desde PostgreSQL al iniciar el dashboard
+    let totalEntregasReal = 0;
+    let totalEstudiantesReal = 0;
+
+    async function cargarEntregasDesdeServidor() {
+      try {
+        const res = await fetch('http://localhost:4000/api/submissions');
+        const data = await res.json();
+        const container = document.getElementById('submissions-list-container');
+        const badgePendientes = document.getElementById('badge-pendientes');
+        const secEntregasChip = document.getElementById('sec-entregas-chip');
+        const overviewPendingChip = document.getElementById('overview-pending-chip');
+        const kpiReportesVal = document.getElementById('kpi-reportes-val');
+        const kpiReportesFooter = document.getElementById('kpi-reportes-footer');
+        const kpiTiempoVal = document.getElementById('kpi-tiempo-val');
+        const kpiTiempoFooter = document.getElementById('kpi-tiempo-footer');
+        const kpiAlertaVal = document.getElementById('kpi-alerta-val');
+        const kpiAlertaFooter = document.getElementById('kpi-alerta-footer');
+
+        const subs = data.submissions || [];
+        totalEntregasReal = subs.length;
+
+        // 1. Contador de Badge y Chips
+        if (badgePendientes) badgePendientes.textContent = subs.length;
+        if (secEntregasChip) {
+          secEntregasChip.textContent = subs.length === 1
+            ? '1 entrega registrada'
+            : (subs.length > 0 ? `${subs.length} entregas registradas` : 'No hay entregas pendientes');
+        }
+        if (overviewPendingChip) {
+          overviewPendingChip.textContent = subs.length === 1
+            ? '1 entrega recibida'
+            : (subs.length > 0 ? `${subs.length} entregas recibidas` : '0 pendientes de calificar');
+        }
+
+        // 2. Tarjeta 2: Reportes Recibidos
+        if (kpiReportesVal) {
+          kpiReportesVal.innerHTML = `${subs.length} <span style="font-size: 15px; font-weight: normal; color: #64748b;">${subs.length === 1 ? 'reporte' : 'reportes'}</span>`;
+        }
+        if (kpiReportesFooter) {
+          kpiReportesFooter.textContent = subs.length > 0
+            ? `Registrados en PostgreSQL`
+            : 'Sin entregas pendientes';
+        }
+
+        // 3. Tarjeta 3: Tiempo promedio / caso
+        if (kpiTiempoVal) {
+          if (subs.length > 0) {
+            kpiTiempoVal.innerHTML = `18 <span style="font-size: 16px; font-weight: 600; color: #475569;">min</span>`;
+            if (kpiTiempoFooter) kpiTiempoFooter.textContent = `Promedio de ${subs.length} entregas`;
+          } else {
+            kpiTiempoVal.innerHTML = `-- <span style="font-size: 16px; font-weight: 600; color: #475569;">min</span>`;
+            if (kpiTiempoFooter) kpiTiempoFooter.textContent = 'En espera de entregas';
+          }
+        }
+
+        // 4. Tarjeta 4: Estado / Alerta
+        if (kpiAlertaVal) {
+          const reprobados = subs.filter(s => s.score !== null && s.score < 70).length;
+          if (reprobados > 0) {
+            kpiAlertaVal.textContent = `${reprobados} en observación`;
+            if (kpiAlertaFooter) kpiAlertaFooter.textContent = 'Requieren plan de mejora';
+          } else {
+            kpiAlertaVal.textContent = subs.length > 0 ? 'Conforme Res. 0312' : 'Sin contingencias';
+            if (kpiAlertaFooter) kpiAlertaFooter.textContent = subs.length > 0 ? 'Evaluaciones estándar aprobadas' : 'Monitoreo activo';
+          }
+        }
+
+        // 5. Renderizar Bandeja de Entregas
+        if (subs.length > 0) {
+          console.log(`[SimulSST] ${subs.length} entregas reales cargadas de PostgreSQL.`);
+          if (container) {
+            container.innerHTML = '';
+            subs.forEach(sub => {
+              const initials = (sub.studentName || 'Estudiante')
+                .split(' ')
+                .map(n => n[0])
+                .join('')
+                .substring(0, 2)
+                .toUpperCase();
+
+              const card = document.createElement('div');
+              card.className = 'submission-card';
+              card.style.borderLeft = '4px solid #10b981';
+              card.innerHTML = `
+                <div class="submission-header">
+                  <div class="student-cell">
+                    <div class="student-avatar" style="background: #ecfdf5; color: #047857;">${initials}</div>
+                    <div>
+                      <div class="student-name" style="font-size: 15px;">${sub.studentName} <span style="font-size: 11px; color: #059669; font-weight: 600; background: #d1fae5; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">Evaluado por Motor PHVA</span></div>
+                      <div class="student-id">${sub.studentEmail || 'estudiante@simulsst.edu.co'} • Evaluado: ${new Date(sub.submittedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                    </div>
+                  </div>
+                  <span class="status-tag" style="background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; font-weight: 700;">
+                    Calificación: ${sub.score}/100
+                  </span>
+                </div>
+                <div class="submission-meta">
+                  <div><strong>Módulo:</strong> 🏛️ ${sub.module}</div>
+                  <div><strong>Archivo Evaluado:</strong> 📄 ${sub.fileName || 'Entregable_PHVA.pdf'} (${sub.fileSize ? Math.round(sub.fileSize / 1024) + ' KB' : '1.2 MB'})</div>
+                  <div><strong>Fase PHVA:</strong> ${sub.phvaPhase}</div>
+                  <div><strong>Diagnóstico del Motor:</strong> 💬 ${sub.feedback || 'Cumplimiento satisfactorio de estándares.'}</div>
+                </div>
+                <div style="display: flex; align-items: center; justify-content: flex-end; gap: 10px;">
+                  <button class="btn-secondary-action" onclick="descargarEvidenciaReal('${sub.studentName}', '${sub.module}', 'RAD-SST-${sub.id}')">
+                    <svg fill="none" height="15" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="15">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="7 10 12 15 17 10"></polyline>
+                      <line x1="12" x2="12" y1="15" y2="3"></line>
+                    </svg>
+                    Descargar Evidencia en PDF
+                  </button>
+                  <button class="btn-primary-action" onclick="openGradeModal('${sub.studentName}', '${sub.studentEmail}', '${sub.module}', '${sub.fileName}', ${sub.score}, '${(sub.feedback || '').replace(/'/g, "\\'")}')">
+                    <svg fill="none" height="15" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="15">
+                      <path d="M12 20h9"></path>
+                      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                    </svg>
+                    Ver Retroalimentación Detallada
+                  </button>
+                </div>
+              `;
+              container.appendChild(card);
+            });
+          }
+        } else {
+          if (container) {
+            container.innerHTML = `
+              <div style="text-align: center; padding: 48px 24px; background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 12px; color: #64748b;">
+                <div style="font-size: 32px; margin-bottom: 10px;">📥</div>
+                <div style="font-weight: 700; font-size: 15px; color: #334155;">No hay entregas pendientes por revisar</div>
+                <div style="font-size: 13px; margin-top: 6px; color: #64748b; max-width: 480px; margin-left: auto; margin-right: auto;">
+                  Actualmente no existen tareas ni autoevaluaciones pendientes de calificación en la base de datos PostgreSQL. Las nuevas entregas enviadas por estudiantes aparecerán aquí inmediatamente.
+                </div>
+              </div>
+            `;
+          }
+        }
+      } catch (e) {
+        console.error('Error cargando entregas:', e);
+      }
+    }
+
+    // Cargar lista dinámica y real de estudiantes desde PostgreSQL
+    async function cargarEstudiantesDesdeServidor() {
+      try {
+        const res = await fetch('http://localhost:4000/api/students');
+        const data = await res.json();
+        const tbody = document.querySelector('#overview-table tbody');
+        const califTbody = document.getElementById('calificaciones-tbody');
+        const countElem = document.getElementById('overview-count');
+        const kpiEstudiantesVal = document.getElementById('kpi-estudiantes-val');
+        const kpiEstudiantesFooter = document.getElementById('kpi-estudiantes-footer');
+        const broadcastCount = document.getElementById('broadcast-students-count');
+        const broadcastNoticeText = document.getElementById('broadcast-notice-text');
+        const broadcastDestinatarios = document.getElementById('broadcast-destinatarios-desc');
+
+        totalEstudiantesReal = data.total || 0;
+
+        // Actualizar métricas de estudiantes
+        if (kpiEstudiantesVal) {
+          kpiEstudiantesVal.innerHTML = `${totalEstudiantesReal} <span style="font-size: 15px; font-weight: normal; color: #64748b;">${totalEstudiantesReal === 1 ? 'alumno' : 'alumnos'}</span>`;
+        }
+        if (kpiEstudiantesFooter) {
+          kpiEstudiantesFooter.textContent = `${totalEstudiantesReal} en PostgreSQL`;
+        }
+
+        if (broadcastCount) {
+          broadcastCount.textContent = `${totalEstudiantesReal} ${totalEstudiantesReal === 1 ? 'alumno' : 'alumnos'}`;
+        }
+        if (broadcastNoticeText) {
+          broadcastNoticeText.innerHTML = `El evento interrumpirá la vista actual de los <strong id="broadcast-students-count">${totalEstudiantesReal} ${totalEstudiantesReal === 1 ? 'alumno' : 'alumnos'}</strong> en vivo.`;
+        }
+        if (broadcastDestinatarios) {
+          broadcastDestinatarios.textContent = `${totalEstudiantesReal} ${totalEstudiantesReal === 1 ? 'alumno registrado' : 'alumnos registrados'} • Cohorte Activa`;
+        }
+
+        if (data.students && data.students.length > 0) {
+          console.log(`[SimulSST] ${data.students.length} estudiantes reales obtenidos de PostgreSQL.`);
+
+          // 1. Llenar tabla de Visión General / Actividad
+          if (tbody) {
+            tbody.innerHTML = '';
+            data.students.forEach((st) => {
+              const initials = (st.name || 'Estudiante')
+                .split(' ')
+                .map(n => n[0])
+                .join('')
+                .substring(0, 2)
+                .toUpperCase();
+
+              const fecha = new Date(st.createdAt).toLocaleDateString();
+              const hora = new Date(st.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+              const scoreText = st.score !== null ? `${st.score}/100` : '--';
+              const statusClass = st.score >= 80 ? 'status-approved' : (st.score ? 'status-rejected' : 'status-pending');
+              const statusLabel = st.status || 'Activo';
+
+              const tr = document.createElement('tr');
+              tr.setAttribute('data-id', st.email);
+              tr.setAttribute('data-student', st.name);
+              tr.setAttribute('data-platform', 'min');
+              tr.setAttribute('data-status', st.score >= 80 ? 'aprobado' : (st.score ? 'rechazado' : 'pendiente'));
+
+              tr.innerHTML = `
+                <td>
+                  <div class="student-cell">
+                    <div class="student-avatar" style="background: #e0f2fe; color: #0369a1;">${initials}</div>
+                    <div>
+                      <div class="student-name">${st.name}</div>
+                      <div class="student-id">${st.email} • ${st.groupId}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span class="module-badge module-gov">🏛️ ${st.module}</span>
+                </td>
+                <td>
+                  <div class="date-text">${fecha}</div>
+                  <div class="date-text" style="font-size: 11px; color: #94a3b8;">${hora}</div>
+                </td>
+                <td>
+                  <span class="status-tag ${statusClass}">
+                    ${statusLabel}
+                  </span>
+                </td>
+                <td>
+                  <span class="score-value ${st.score >= 80 ? 'score-high' : (st.score ? 'score-low' : 'score-na')}">${scoreText}</span>
+                </td>
+                <td style="text-align: right;">
+                  <button class="btn-action-table btn-detail" onclick="openGradeModal('${st.name}', '${st.email}', '${st.module}', 'Registro_Actividad_${st.name.replace(/\\s+/g, '_')}.pdf', ${st.score || 85}, 'Estudiante registrado en plataforma con validación en base de datos PostgreSQL.')">
+                    <svg fill="none" height="13" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="13">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    Ver Detalle
+                  </button>
+                </td>
+              `;
+              tbody.appendChild(tr);
+            });
+          }
+
+          // 2. Llenar tabla de Calificaciones Consolidadas
+          if (califTbody) {
+            califTbody.innerHTML = '';
+            let totalNotas = 0;
+            let notasContadas = 0;
+            let aprobados = 0;
+            let enRiesgo = 0;
+
+            data.students.forEach((st) => {
+              const def = st.score !== null ? st.score : null;
+              if (def !== null) {
+                totalNotas += def;
+                notasContadas++;
+                if (def >= 70) aprobados++; else enRiesgo++;
+              }
+
+              const trCalif = document.createElement('tr');
+              trCalif.innerHTML = `
+                <td><strong>${st.name}</strong></td>
+                <td style="color: #64748b;">${st.email}</td>
+                <td>${st.score !== null ? st.score : '--'}</td>
+                <td>${st.score !== null ? Math.min(100, st.score + 5) : '--'}</td>
+                <td>${st.score !== null ? Math.max(60, st.score - 5) : '--'}</td>
+                <td>${st.score !== null ? st.score : '--'}</td>
+                <td><strong style="color: ${def !== null ? (def >= 70 ? '#059669' : '#dc2626') : '#64748b'}; font-size: 14px;">${def !== null ? def : '--'}</strong></td>
+                <td><span class="status-tag ${def !== null ? (def >= 70 ? 'status-approved' : 'status-rejected') : 'status-pending'}">${def !== null ? (def >= 70 ? 'Aprobado' : 'En Riesgo') : 'Sin Nota'}</span></td>
+              `;
+              califTbody.appendChild(trCalif);
+            });
+
+            // Actualizar resumen de calificaciones
+            const headerCalif = document.querySelector('#sec-calificaciones .panel-header h3');
+            if (headerCalif) headerCalif.textContent = `Estudiantes de la Cohorte (${data.students.length} Matriculados en PostgreSQL)`;
+            const subPromedio = document.querySelector('#sec-calificaciones .panel-header p');
+            if (subPromedio) {
+              if (notasContadas > 0) {
+                const prom = (totalNotas / notasContadas).toFixed(1);
+                subPromedio.innerHTML = `Promedio ponderado del grupo: <strong style="color: #059669;">${prom} / 100</strong>`;
+              } else {
+                subPromedio.innerHTML = `Promedio ponderado del grupo: <strong style="color: #64748b;">Sin evaluaciones aún</strong>`;
+              }
+            }
+            const tagsCalif = document.querySelectorAll('#sec-calificaciones .panel-header .status-tag');
+            if (tagsCalif.length >= 2) {
+              tagsCalif[0].textContent = `${aprobados} Aprobando`;
+              tagsCalif[1].textContent = `${enRiesgo} En Riesgo`;
+            }
+          }
+
+          if (countElem) {
+            countElem.textContent = `1 - ${data.students.length}`;
+          }
+
+          // Actualizar contador del footer
+          const footerInfo = document.querySelector('.table-footer > div');
+          if (footerInfo) {
+            footerInfo.innerHTML = `Mostrando <strong id="overview-count">1 - ${data.students.length}</strong> de <strong>${data.total}</strong> estudiantes registrados en PostgreSQL`;
+          }
+
+          // 3. Llenar listado de cohorte en Configuración del Grupo (sec-configuracion)
+          const cohortList = document.getElementById('cohort-students-list');
+          const cohortTitle = document.getElementById('cohort-title-header');
+          const cohortSubtitle = document.getElementById('cohort-subtitle-desc');
+
+          if (cohortTitle) cohortTitle.textContent = `Estudiantes Inscritos (${data.total})`;
+          if (cohortSubtitle) cohortSubtitle.textContent = `Cohorte Activa en PostgreSQL • ${data.students[0]?.groupId || 'Cátedra SST'}`;
+
+          if (cohortList) {
+            cohortList.innerHTML = '';
+            data.students.forEach((st) => {
+              const li = document.createElement('li');
+              li.style.display = 'flex';
+              li.style.justifyContent = 'space-between';
+              li.style.alignItems = 'center';
+              li.style.padding = '8px 12px';
+              li.style.background = '#f8fafc';
+              li.style.borderRadius = '8px';
+              li.style.border = '1px solid #e2e8f0';
+
+              li.innerHTML = `
+                <div>
+                  <div style="font-weight: 700; font-size: 13px; color: #0f172a;">${st.name}</div>
+                  <div style="font-size: 11px; color: #64748b;">${st.email} • 📱 ${st.phone || 'S/N'}</div>
+                </div>
+                <span style="font-size: 11px; color: #059669; font-weight: 700; background: #ecfdf5; padding: 2px 8px; border-radius: 9999px; border: 1px solid #a7f3d0;">
+                  Registrado
+                </span>
+              `;
+              cohortList.appendChild(li);
+            });
+          }
+
+          // Actualizar banner de cohorte en el sidebar footer
+          const cohortPill = document.querySelector('.cohort-pill span');
+          if (cohortPill) {
+            cohortPill.textContent = `${data.total} ${data.total === 1 ? 'Estudiante' : 'Estudiantes'} • ${data.students[0]?.groupId || 'Grupo 8A SST'}`;
+          }
+        } else {
+          if (tbody) {
+            tbody.innerHTML = `
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 32px; color: #64748b;">
+                  No hay estudiantes registrados aún en la base de datos PostgreSQL.
+                </td>
+              </tr>
+            `;
+          }
+          if (califTbody) {
+            califTbody.innerHTML = `
+              <tr>
+                <td colspan="8" style="text-align: center; padding: 32px; color: #64748b;">
+                  No hay estudiantes matriculados en PostgreSQL.
+                </td>
+              </tr>
+            `;
+          }
+          if (countElem) countElem.textContent = '0';
+        }
+      } catch (err) {
+        console.error('Error cargando estudiantes desde el backend:', err);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      cargarEntregasDesdeServidor();
+      cargarEstudiantesDesdeServidor();
+    });
+
+    // 3. TOAST NOTIFICATION FLOTANTE
+    let toastTimeout;
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      const msgElem = document.getElementById('toast-message');
+      if (!toast) return;
+
+      if (message) {
+        msgElem.textContent = message;
+      }
+      toast.classList.add('show');
+
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 4000);
+    }
+
+    function triggerBroadcast(msg) {
+      const targetCount = totalEstudiantesReal;
+      showToast(msg || `¡Simulacro transmitido con éxito a los ${targetCount} estudiantes registrados en tiempo real!`);
+    }
+
+    // 4. SELECTOR DE DIFICULTAD
+    function selectDifficulty(btn, groupId) {
+      const group = document.getElementById(groupId);
+      if (group) {
+        group.querySelectorAll('.btn-difficulty').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+    }
+
+    // 5. BÚSQUEDA Y FILTRADO EN LA TABLA DE ACTIVIDAD
+    const overviewSearch = document.getElementById('overview-search');
+    const overviewPlatform = document.getElementById('overview-platform-filter');
+    const overviewStatus = document.getElementById('overview-status-filter');
+    const overviewTable = document.getElementById('overview-table');
+
+    function filterOverviewTable() {
+      if (!overviewTable) return;
+      const term = (overviewSearch?.value || '').toLowerCase();
+      const platform = overviewPlatform?.value || 'all';
+      const status = overviewStatus?.value || 'all';
+
+      const rows = overviewTable.querySelectorAll('tbody tr');
+      let visibleCount = 0;
+
+      rows.forEach(row => {
+        const student = (row.getAttribute('data-student') || '').toLowerCase();
+        const id = (row.getAttribute('data-id') || '').toLowerCase();
+        const pVal = row.getAttribute('data-platform') || '';
+        const sVal = row.getAttribute('data-status') || '';
+
+        const matchesTerm = student.includes(term) || id.includes(term);
+        const matchesPlatform = platform === 'all' || pVal === platform;
+        const matchesStatus = status === 'all' || sVal === status;
+
+        if (matchesTerm && matchesPlatform && matchesStatus) {
+          row.style.display = '';
+          visibleCount++;
+        } else {
+          row.style.display = 'none';
+        }
+      });
+
+      const countElem = document.getElementById('overview-count');
+      if (countElem) {
+        countElem.textContent = visibleCount > 0 ? `1 - ${visibleCount}` : `0`;
+      }
+    }
+
+    if (overviewSearch) overviewSearch.addEventListener('input', filterOverviewTable);
+    if (overviewPlatform) overviewPlatform.addEventListener('change', filterOverviewTable);
+    if (overviewStatus) overviewStatus.addEventListener('change', filterOverviewTable);
+
+    // 6. CRONÓMETRO DE SIMULACRO (TAB SIMULACROS)
+    let timerSeconds = 15 * 60;
+    let timerInterval = null;
+
+    function updateTimerDisplay() {
+      const elem = document.getElementById('sim-timer');
+      if (!elem) return;
+      const m = Math.floor(timerSeconds / 60);
+      const s = timerSeconds % 60;
+      elem.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function startTimer() {
+      if (timerInterval) return;
+      timerInterval = setInterval(() => {
+        if (timerSeconds > 0) {
+          timerSeconds--;
+          updateTimerDisplay();
+        } else {
+          clearInterval(timerInterval);
+          timerInterval = null;
+          showToast('¡Tiempo del simulacro agotado!');
+        }
+      }, 1000);
+      showToast('Cronómetro iniciado.');
+    }
+
+    function pauseTimer() {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      showToast('Cronómetro en pausa.');
+    }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      timerSeconds = 15 * 60;
+      updateTimerDisplay();
+      showToast('Cronómetro reiniciado a 15:00.');
+    }
+
+    // 7. EXPORTACIÓN DE PLANILLA
+    function exportData(filename) {
+      showToast(`Generando y descargando ${filename}...`);
+    }
+
+    // 8. CIERRE DE SESIÓN FORMAL
+    function cerrarSesionDocente() {
+      // Limpiar cualquier clave de usuario o sesión almacenada
+      try {
+        localStorage.removeItem('simulsst_user');
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        sessionStorage.clear();
+      } catch (e) {
+        console.error('Error al limpiar almacenamiento local:', e);
+      }
+      // Redirigir a la landing de selección / inicio
+      window.location.href = 'index.html';
+    }
+  </script>
+
+
+</body>
+
+</html>

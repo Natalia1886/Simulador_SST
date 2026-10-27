@@ -1,0 +1,26 @@
+{
+  "screenshot": {
+    "name": "projects/11743137579217586199/files/10644803259893544014",
+    "downloadUrl": "https://lh3.googleusercontent.com/aida/AEtjO1VchdqjW1M2gX2AbMedTI3NzkiRlqNvFxweHHjYJ520kZBEys_J3oIYeI-KD5fCjAC-LRgzzGT6k-YYgnb7ISoCkHE8ThIwNfeoKbEcHV3-kOZspqqs8nbChu8kRx4_Y_cT15IO1mmTJnFCDlbOnFzMuPmJs9ne1Mzk5ioZ1Qvm-JTSloFRO0fhiFdrKAuGrHiV9aHIcwYk5GXyZX_8LN8Rz4uuZHZyaWq5VkpJk94DXJnygiQKSsnKWkKM"
+  },
+  "htmlCode": {
+    "name": "projects/11743137579217586199/files/1015885328162213066",
+    "downloadUrl": "https://contribution.usercontent.google.com/download?c=CgthaWRhX2NvZGVmeBJ8Eh1hcHBfY29tcGFuaW9uX2dlbmVyYXRlZF9maWxlcxpbCiVodG1sXzAwMDY1ZTNjNmI2ZTNhMzkwMmE5YWRiYWNmMjBiMDRkEgsSBxDdhITv4hQYAZIBJAoKcHJvamVjdF9pZBIWQhQxMTc0MzEzNzU3OTIxNzU4NjE5OQ&filename=&opi=89354086",
+    "mimeType": "text/html"
+  },
+  "id": "7e6e84db1dac4af8a269030921bb3b52",
+  "generatedBy": "HatterAgent",
+  "width": "2560",
+  "height": "2196",
+  "title": "SimulSST Pro - Módulo Docente / Panel de Control del Profesor (Interactivo)",
+  "prompt": "Añade funcionalidad interactiva completa en JavaScript al panel del docente:\n1. Mismo diseño CSS puro institucional con sidebar fijo #1e3a8a, topbar, grid y estilos ejecutivos.\n2. Contenedores de secciones con la clase 'tab-content' e IDs específicos para alternar vistas (display: block para la activa, display: none para las demás):\n   - 'sec-metricas': Vista general actual con los KPIs (4 tarjetas), tabla de actividad y entregas recientes con buscador y filtros, y columna derecha de lanzador de simulacros con parámetros de sesión.\n   - 'sec-entregas': Vista dedicada \"📥 Entregas por Revisar\" con listado enfocado de reportes pendientes (con botón para abrir modal de calificación, datos de evidencia entregada, estudiante, plataforma y rúbrica).\n   - 'sec-simulacros': Vista \"🚨 Generador y Control de Simulacros en Vivo\" ampliada con configuración de contingencias (Fuga de Químicos, Accidente en Alturas, Inspección Ministerio, Incendio Eléctrico), nivel de severidad, cronómetro y botón de lanzamiento.\n   - 'sec-calificaciones': Vista \"📋 Registro y Planilla de Calificaciones\" con tabla de notas consolidadas de la cohorte, promedio general, ponderaciones por ciclo PHVA, botón \"📥 Exportar Excel / CSV\" y estados de aprobación.\n   - 'sec-configuracion': Vista \"⚙️ Configuración del Grupo y Cátedra\" con listado de 38 estudiantes inscritos, edición de parámetros (tiempo límite, reintentos permitidos, rúbrica activa Dec. 1072/Res. 0312) y botón guardar.\n3. Interactividad completa en el menú lateral:\n   - Al hacer clic en cada ítem del sidebar, se desactiva el anterior, se añade la clase de activo (fondo azul rey destacado #2563eb y borde/indicador), y se muestra únicamente la sección tab-content correspondiente.\n4. Modales y ventanas emergentes interactivas:\n   - Modal \"+ Asignar Nuevo Caso\": Se activa con el botón '+ Asignar Nuevo Caso' de la topbar. Contiene formulario con Nombre de Empresa, Sector Económico, Nivel de Riesgo (I al V), Tiempo Límite, Descripción de la práctica y botón \"Guardar y Asignar a la Clase\" (con cierre al guardar o cancelar).\n   - Modal \"Calificar y Retroalimentar Entrega\": Se activa con los botones \"Calificar\" o \"Ver Detalle\" de las tablas de estudiantes. Muestra datos del estudiante (ej: María Rodríguez), módulo entregado, evidencia adjunta, selector de nota (1 a 100), campo de retroalimentación cualitativa y botón \"Publicar Nota al Estudiante\".\n5. Notificación / Toast flotante en tiempo real:\n   - Al pulsar \"Enviar Simulacro a la Clase Ahora\" (en la vista general o en el generador de simulacros), muestra una notificación toast flotante en verde seguridad (#059669) con icono de éxito en la esquina superior/inferior: \"¡Simulacro enviado con éxito a los 38 estudiantes activos en tiempo real!\" que se desvanece suavemente.\n6. Todos los cierres de modal con botón de 'X' o botón 'Cancelar' y click fuera del modal.\n7. Conservar exactamente la tipografía del sistema, iconos SVG inline limpios, y todos los datos institucionales de SimulSST Pro.",
+  "name": "projects/11743137579217586199/screens/7e6e84db1dac4af8a269030921bb3b52",
+  "theme": {},
+  "deviceType": "DESKTOP",
+  "screenType": "DESIGN",
+  "screenMetadata": {
+    "agentType": "PRO_AGENT",
+    "status": "COMPLETE",
+    "displayMode": "HTML"
+  }
+}

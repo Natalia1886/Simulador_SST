@@ -1,0 +1,12 @@
+{
+  "name": "@simulsst/web",
+  "version": "1.0.0",
+  "description": "Frontend estático de SimulSST Pro",
+  "scripts": {
+    "dev": "npx --yes serve public -p 3000",
+    "start": "npx --yes serve public -p 3000"
+  },
+  "dependencies": {
+    "serve": "^14.2.4"
+  }
+}

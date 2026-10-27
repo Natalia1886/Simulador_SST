@@ -1,0 +1,750 @@
+<!DOCTYPE html><html lang="es" style=""><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ARL SURA - Inicio de Sesión | Simulador SG-SST</title>
+  <style>
+    :root {
+      --primary: #0033a0;
+      --primary-hover: #00227a;
+      --primary-light: #eff6ff;
+      --primary-border: #bfdbfe;
+      --navy-dark: #0f172a;
+      --slate-900: #0f172a;
+      --slate-800: #1e293b;
+      --slate-700: #334155;
+      --slate-600: #475569;
+      --slate-500: #64748b;
+      --slate-400: #94a3b8;
+      --slate-200: #e2e8f0;
+      --slate-100: #f1f5f9;
+      --slate-50: #f8fafc;
+      --accent-emerald: #10b981;
+      --card-bg: #ffffff;
+      --card-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+      --input-border: #cbd5e1;
+      --input-focus: #0033a0;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 20px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background-color: #f1f5f9;
+      background-image: 
+        radial-gradient(at 10% 15%, rgba(37, 99, 235, 0.08) 0px, transparent 50%),
+        radial-gradient(at 90% 85%, rgba(14, 165, 233, 0.09) 0px, transparent 50%),
+        radial-gradient(at 50% 50%, rgba(99, 102, 241, 0.05) 0px, transparent 65%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      color: var(--slate-800);
+      line-height: 1.5;
+    }
+
+    /* Top bar branding */
+    .top-nav {
+      padding: 1.25rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .brand-logo-link {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: var(--slate-900);
+    }
+
+    .brand-icon-box {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #1d4ed8 0%, #0033a0 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.25);
+    }
+
+    .brand-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-title {
+      font-weight: 700;
+      font-size: 1.125rem;
+      letter-spacing: -0.02em;
+      color: var(--slate-900);
+    }
+
+    .brand-subtitle {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--primary);
+    }
+
+    .portal-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.85rem;
+      background-color: #ffffff;
+      border: 1px solid var(--slate-200);
+      border-radius: 9999px;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--slate-600);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--accent-emerald);
+      border-radius: 50%;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+    }
+
+    /* Main Container */
+    .main-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem 1rem 2.5rem;
+    }
+
+    .login-card {
+      background: var(--card-bg);
+      width: 100%;
+      max-width: 480px;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--card-shadow);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      padding: 2.5rem 2.25rem;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .login-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, #0033a0, #38bdf8, #6366f1);
+    }
+
+    /* Header in card */
+    .card-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .illustration-badge {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 1.25rem;
+      background: #eff6ff;
+      border: 1px solid #dbeafe;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.12);
+    }
+
+    .card-title {
+      font-size: 1.625rem;
+      font-weight: 700;
+      color: var(--slate-900);
+      letter-spacing: -0.025em;
+      margin-bottom: 0.5rem;
+    }
+
+    .card-subtitle {
+      font-size: 0.9375rem;
+      color: var(--slate-500);
+      max-width: 380px;
+      margin: 0 auto;
+      line-height: 1.45;
+    }
+
+    /* Form Styles */
+    .form-group {
+      margin-bottom: 1.25rem;
+      text-align: left;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--slate-700);
+      margin-bottom: 0.5rem;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon-left {
+      position: absolute;
+      left: 1rem;
+      color: var(--slate-400);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .form-input {
+      width: 100%;
+      height: 48px;
+      padding: 0 1rem 0 2.75rem;
+      font-size: 0.9375rem;
+      color: var(--slate-900);
+      background-color: #ffffff;
+      border: 1.5px solid var(--input-border);
+      border-radius: var(--radius-md);
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .form-input::placeholder {
+      color: var(--slate-400);
+      font-size: 0.875rem;
+    }
+
+    .form-input:focus {
+      border-color: var(--input-focus);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+      background-color: #ffffff;
+    }
+
+    /* Password toggle button */
+    .password-toggle-btn {
+      position: absolute;
+      right: 0.75rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--slate-400);
+      padding: 0.4rem;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.15s ease, background-color 0.15s ease;
+    }
+
+    .password-toggle-btn:hover {
+      color: var(--slate-700);
+      background-color: var(--slate-100);
+    }
+
+    /* Checkbox & forgot password row */
+    .form-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      font-size: 0.875rem;
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--slate-600);
+      cursor: pointer;
+      user-select: none;
+      font-weight: 500;
+    }
+
+    .custom-checkbox {
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border: 1.5px solid var(--slate-400);
+      border-radius: 4px;
+      background-color: #ffffff;
+      cursor: pointer;
+      display: grid;
+      place-content: center;
+      transition: all 0.15s ease;
+      margin: 0;
+    }
+
+    .custom-checkbox::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      transform: scale(0);
+      transition: 120ms transform ease-in-out;
+      box-shadow: inset 1em 1em #ffffff;
+      transform-origin: center;
+      clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+    }
+
+    .custom-checkbox:checked {
+      background-color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .custom-checkbox:checked::before {
+      transform: scale(1);
+    }
+
+    .custom-checkbox:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+
+    .forgot-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.15s ease;
+    }
+
+    .forgot-link:hover {
+      color: var(--primary-hover);
+      text-decoration: underline;
+    }
+
+    /* Submit Button */
+    .submit-btn {
+      width: 100%;
+      height: 48px;
+      background: linear-gradient(135deg, #0033a0 0%, #1d4ed8 100%);
+      color: #ffffff;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 0.975rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+      transition: all 0.2s ease;
+    }
+
+    .submit-btn:hover {
+      background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+      box-shadow: 0 6px 14px rgba(37, 99, 235, 0.35);
+      transform: translateY(-1px);
+    }
+
+    .submit-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+    }
+
+    /* Divider */
+    .divider {
+      display: flex;
+      align-items: center;
+      margin: 1.75rem 0 1.25rem;
+      color: var(--slate-400);
+      font-size: 0.8125rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background-color: var(--slate-200);
+    }
+
+    .divider span {
+      padding: 0 0.85rem;
+    }
+
+    /* Google Workspace Button */
+    .google-btn {
+      width: 100%;
+      height: 48px;
+      background-color: #ffffff;
+      border: 1.5px solid var(--slate-200);
+      border-radius: var(--radius-md);
+      color: var(--slate-700);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .google-btn:hover {
+      background-color: var(--slate-50);
+      border-color: var(--slate-300);
+      color: var(--slate-900);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    }
+
+    /* Alternate Return to Role */
+    .back-role-box {
+      margin-top: 1.75rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--slate-100);
+      text-align: center;
+    }
+
+    .back-role-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--slate-600);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      padding: 0.4rem 0.75rem;
+      border-radius: var(--radius-sm);
+      transition: all 0.15s ease;
+    }
+
+    .back-role-link:hover {
+      color: var(--primary);
+      background-color: var(--primary-light);
+    }
+
+    /* Support Info */
+    .support-note {
+      margin-top: 1.25rem;
+      text-align: center;
+      font-size: 0.8125rem;
+      color: var(--slate-500);
+    }
+
+    .support-note a {
+      color: var(--primary);
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .support-note a:hover {
+      text-decoration: underline;
+    }
+
+    /* Footer */
+    .page-footer {
+      padding: 1.5rem 2rem;
+      text-align: center;
+      font-size: 0.8125rem;
+      color: var(--slate-500);
+      border-top: 1px solid var(--slate-200);
+      background: #ffffff;
+      width: 100%;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-bottom: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: var(--slate-600);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.15s ease;
+    }
+
+    .footer-links a:hover {
+      color: var(--primary);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 540px) {
+      .top-nav {
+        padding: 1rem 1.25rem;
+      }
+      .portal-status-badge {
+        display: none;
+      }
+      .login-card {
+        padding: 1.75rem 1.5rem;
+        border-radius: var(--radius-md);
+      }
+      .card-title {
+        font-size: 1.375rem;
+      }
+      .illustration-badge {
+        width: 54px;
+        height: 54px;
+        margin-bottom: 1rem;
+      }
+      .form-meta-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation / Institutional Identity -->
+  <header class="top-nav">
+    <a href="#" class="brand-logo-link" title="SimulSST Pro Campus Virtual">
+      <div class="brand-icon-box">
+        <!-- Shield / Graduation Icon -->
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+          <path d="M2 17l10 5 10-5"></path>
+          <path d="M2 12l10 5 10-5"></path>
+        </svg>
+      </div>
+      <div class="brand-info">
+        <span class="brand-title">SimulSST Pro</span>
+        <span class="brand-subtitle">Campus Académico Virtual</span>
+      </div>
+    </a>
+
+    <div class="portal-status-badge">
+      <span class="status-dot"></span>
+      <span class="">Servidores Operativos • Ciclo 2026-2</span>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="main-wrapper">
+    <section class="login-card">
+      
+      <!-- Card Branding & Header -->
+      <div class="card-header">
+        <div class="illustration-badge" aria-hidden="true">
+          <!-- Friendly Graduation Cap / Book Icon -->
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+            <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+          </svg>
+        </div>
+        <h1 class="card-title">ARL SURA</h1>
+        <p class="card-subtitle">Portal de Servicios Virtuales para Gestión de Riesgos Laborales y SG-SST</p>
+      </div>
+
+      <!-- Alert Message Banner -->
+      <div id="loginAlert" style="display: none; padding: 12px 14px; border-radius: 8px; font-size: 0.875rem; margin-bottom: 1.25rem; font-weight: 500; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; text-align: center;">
+      </div>
+
+      <!-- Login Form -->
+      <form id="studentLoginForm">
+        
+        <!-- Institutional Email Field -->
+        <div class="form-group">
+          <label for="studentEmail" class="form-label">Correo institucional</label>
+          <div class="input-wrapper">
+            <div class="input-icon-left" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+              </svg>
+            </div>
+            <input type="email" id="studentEmail" name="email" class="form-input" placeholder="nombre.apellido@estudiante.edu" required="" autocomplete="email" aria-describedby="emailHelp">
+          </div>
+        </div>
+
+        <!-- Password Field -->
+        <div class="form-group">
+          <label for="studentPassword" class="form-label">Contraseña</label>
+          <div class="input-wrapper">
+            <div class="input-icon-left" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </div>
+            <input type="password" id="studentPassword" name="password" class="form-input" placeholder="••••••••••••" required="" autocomplete="current-password">
+            <button type="button" id="togglePasswordBtn" class="password-toggle-btn" aria-label="Mostrar u ocultar contraseña" title="Mostrar contraseña">
+              <!-- Eye open icon -->
+              <svg id="eyeIcon" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Remember Me & Forgot Password -->
+        <div class="form-meta-row">
+          <label class="checkbox-label" for="rememberMe">
+            <input type="checkbox" id="rememberMe" name="remember" class="custom-checkbox">
+            <span class="">Recordar sesión</span>
+          </label>
+          <a href="#" class="forgot-link">¿Olvidaste tu contraseña?</a>
+        </div>
+
+        <!-- Main Submit CTA -->
+        <button type="submit" class="submit-btn" id="btnSubmitLogin">
+          <span class="">Iniciar Sesión</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14"></path>
+            <path d="m12 5 7 7-7 7"></path>
+          </svg>
+        </button>
+
+      </form>
+
+      <!-- Register Link -->
+      <div style="margin-top: 1.25rem; text-align: center; font-size: 0.9rem; color: var(--slate-600);">
+        ¿No tienes cuenta? <a href="08_registro_usuarios.html" style="color: var(--primary); font-weight: 600; text-decoration: none;">Regístrate aquí</a>
+      </div>
+
+      <!-- Divider -->
+      <div class="divider">
+        <span class="">o continúa con</span>
+      </div>
+
+      <!-- Google Workspace Institutional Button -->
+      <button type="button" class="google-btn" id="btnGoogleAuth">
+        <svg width="19" height="19" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"></path>
+          <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24Z"></path>
+          <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15Z"></path>
+          <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98Z"></path>
+        </svg>
+        <span class="">Ingresar con Google Workspace Institucional</span>
+      </button>
+
+      <!-- Return to Role Selection Link -->
+      <div class="back-role-box">
+        <a href="01_landing_selector.html" class="back-role-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m15 18-6-6 6-6"></path>
+          </svg>
+          <span class="">Volver a la selección de rol</span>
+        </a>
+      </div>
+
+      <!-- Support Message -->
+      
+
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="page-footer">
+    <div class="footer-links">
+      <a href="#" class="">Guía de Acceso</a>
+      <a href="#" class="">Políticas de Privacidad</a>
+      <a href="#" class="">Términos de Servicio</a>
+      
+    </div>
+    <p class="">SimulSST Pro © 2026 Plataforma Educativa de Seguridad y Salud en el Trabajo. Todos los derechos reservados.</p>
+  </footer>
+
+  <!-- Script for toggle password and accessibility -->
+  <script>
+    const passwordInput = document.getElementById('studentPassword');
+    const toggleBtn = document.getElementById('togglePasswordBtn');
+    const eyeIcon = document.getElementById('eyeIcon');
+
+    toggleBtn.addEventListener('click', function () {
+      const isPassword = passwordInput.getAttribute('type') === 'password';
+      if (isPassword) {
+        passwordInput.setAttribute('type', 'text');
+        toggleBtn.setAttribute('title', 'Ocultar contraseña');
+        eyeIcon.innerHTML = `
+          <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path>
+          <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path>
+          <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path>
+          <line x1="2" y1="2" x2="22" y2="22"></line>
+        `;
+      } else {
+        passwordInput.setAttribute('type', 'password');
+        toggleBtn.setAttribute('title', 'Mostrar contraseña');
+        eyeIcon.innerHTML = `
+          <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        `;
+      }
+    });
+
+    // Manejador de Login con Backend
+    const loginForm = document.getElementById('studentLoginForm');
+    const loginAlert = document.getElementById('loginAlert');
+    const btnSubmit = document.getElementById('btnSubmitLogin');
+
+    loginForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      loginAlert.style.display = 'none';
+
+      const email = document.getElementById('studentEmail').value.trim();
+      const password = document.getElementById('studentPassword').value;
+
+      btnSubmit.disabled = true;
+      btnSubmit.style.opacity = '0.7';
+
+      try {
+        const response = await fetch('http://localhost:4000/api/users/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          localStorage.setItem('simulsst_user', JSON.stringify(data.user));
+          window.location.href = '06_arl_sura_evaluacion.html';
+        } else {
+          loginAlert.textContent = data.error || 'Usuario o contraseña incorrectos';
+          loginAlert.style.display = 'block';
+        }
+      } catch (err) {
+        console.error('Error al iniciar sesión:', err);
+        loginAlert.textContent = 'No se pudo conectar con el servidor. Verifica que el backend esté activo.';
+        loginAlert.style.display = 'block';
+      } finally {
+        btnSubmit.disabled = false;
+        btnSubmit.style.opacity = '1';
+      }
+    });
+  </script>
+
+
+
+
+
+
+
+
+
+</body></html>

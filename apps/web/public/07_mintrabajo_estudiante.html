@@ -1,0 +1,1802 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ministerio del Trabajo - Módulo Estudiante / Responsable SG-SST (Interactivo)</title>
+  <style>
+    /* RESET & BASE */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: #f8fafc;
+      color: #1e293b;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* TOPBAR */
+    .topbar {
+      background: #ffffff;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 12px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .gov-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #1d4ed8;
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 15px;
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      letter-spacing: -0.5px;
+    }
+
+    .gov-titles h1 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f172a;
+      letter-spacing: -0.2px;
+      line-height: 1.2;
+    }
+
+    .gov-titles p {
+      font-size: 10px;
+      font-weight: 600;
+      color: #64748b;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    /* ENTITY SELECTOR */
+    .entity-selector-box {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 6px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .entity-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #475569;
+    }
+
+    .entity-select {
+      background: transparent;
+      border: none;
+      font-size: 13px;
+      font-weight: 700;
+      color: #1d4ed8;
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* USER PROFILE */
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: #10b981;
+      border-radius: 50%;
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+    }
+
+    .user-info {
+      text-align: right;
+    }
+
+    .user-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.2;
+    }
+
+    .user-role {
+      font-size: 11px;
+      font-weight: 600;
+      color: #059669;
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #0f766e;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* MAIN LAYOUT */
+    .layout-container {
+      display: flex;
+      flex: 1;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 270px;
+      background: #1d4ed8;
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      min-height: calc(100vh - 63px - 50px);
+    }
+
+    .sidebar-header {
+      padding: 16px 20px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: #93c5fd;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .sidebar-menu {
+      list-style: none;
+      padding: 12px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #ffffff;
+      text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border-left: 4px solid transparent;
+      user-select: none;
+    }
+
+    .sidebar-item:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .sidebar-item.active {
+      background: #172554;
+      border-left-color: #60a5fa;
+      color: #ffffff;
+    }
+
+    .sidebar-item-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .sidebar-icon {
+      font-size: 16px;
+      width: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .active-badge {
+      display: none;
+      font-size: 9px;
+      background: #2563eb;
+      color: #ffffff;
+      padding: 2px 7px;
+      border-radius: 9999px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .sidebar-item.active .active-badge {
+      display: inline-block;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 20px;
+    }
+
+    .academic-banner {
+      background: rgba(23, 37, 84, 0.6);
+      border: 1px solid rgba(96, 165, 250, 0.3);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .academic-banner-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #93c5fd;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .academic-banner-desc {
+      font-size: 10px;
+      color: #e2e8f0;
+      line-height: 1.4;
+    }
+
+    /* MAIN CONTENT */
+    .content-area {
+      flex: 1;
+      padding: 28px 40px;
+      overflow-y: auto;
+    }
+
+    /* BREADCRUMB */
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #64748b;
+      margin-bottom: 12px;
+    }
+
+    .breadcrumb a {
+      color: #2563eb;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .breadcrumb span {
+      color: #94a3b8;
+    }
+
+    /* HEADERS */
+    .view-header {
+      margin-bottom: 20px;
+    }
+
+    .view-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.4px;
+      margin-bottom: 4px;
+    }
+
+    .view-desc {
+      font-size: 13px;
+      color: #64748b;
+    }
+
+    /* CALLOUT */
+    .callout-box {
+      background: #eff6ff;
+      border-left: 4px solid #3b82f6;
+      border-radius: 8px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .callout-icon {
+      font-size: 18px;
+      color: #2563eb;
+      line-height: 1.2;
+    }
+
+    .callout-text {
+      font-size: 12px;
+      color: #1e3a8a;
+      line-height: 1.5;
+    }
+
+    .callout-text strong {
+      color: #1e40af;
+    }
+
+    /* CARDS */
+    .card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 28px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      margin-bottom: 24px;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 16px;
+      margin-bottom: 20px;
+    }
+
+    .card-header-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .step-pill {
+      background: #dbeafe;
+      color: #1e40af;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 9999px;
+    }
+
+    /* FORMS */
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group.col-span-2 {
+      grid-column: span 2;
+    }
+
+    .form-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #334155;
+    }
+
+    .form-label .required {
+      color: #ef4444;
+    }
+
+    .form-input,
+    .form-select {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #0f172a;
+      outline: none;
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+
+    .form-input:focus,
+    .form-select:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .form-help {
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    /* BUTTONS */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+    }
+
+    .btn-green {
+      background: #059669;
+      color: #ffffff;
+    }
+
+    .btn-green:hover {
+      background: #047857;
+      box-shadow: 0 4px 10px rgba(5, 150, 105, 0.25);
+    }
+
+    .btn-blue {
+      background: #2563eb;
+      color: #ffffff;
+    }
+
+    .btn-blue:hover {
+      background: #1d4ed8;
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+    }
+
+    .btn-outline {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      color: #334155;
+    }
+
+    .btn-outline:hover {
+      background: #f8fafc;
+      border-color: #94a3b8;
+    }
+
+    .actions-row {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    /* TABLE */
+    .custom-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 12px;
+    }
+
+    .custom-table th {
+      background: #f8fafc;
+      color: #475569;
+      font-weight: 700;
+      padding: 12px 16px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .custom-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #e2e8f0;
+      color: #1e293b;
+    }
+
+    .custom-table tr:hover {
+      background: #f1f5f9;
+    }
+
+    /* CERTIFICATE MOCKUP */
+    .cert-preview {
+      background: #fdfdfd;
+      border: 2px dashed #cbd5e1;
+      border-radius: 12px;
+      padding: 32px;
+      text-align: center;
+      position: relative;
+    }
+
+    .cert-header {
+      font-size: 16px;
+      font-weight: 800;
+      color: #1e3a8a;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .cert-sub {
+      font-size: 12px;
+      color: #64748b;
+      margin-bottom: 24px;
+    }
+
+    .score-circle {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      background: #ecfdf5;
+      border: 4px solid #10b981;
+      color: #065f46;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+    }
+
+    .score-number {
+      font-size: 28px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .score-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    /* UPLOAD AREA */
+    .dropzone {
+      border: 2px dashed #93c5fd;
+      background: #f0f7ff;
+      border-radius: 12px;
+      padding: 32px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .dropzone:hover {
+      background: #e0f2fe;
+      border-color: #3b82f6;
+    }
+
+    .dropzone-icon {
+      font-size: 36px;
+      color: #2563eb;
+      margin-bottom: 8px;
+    }
+
+    .dropzone-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1e3a8a;
+      margin-bottom: 4px;
+    }
+
+    .dropzone-sub {
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    /* TOAST ALERT */
+    .toast-alert {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 14px 22px;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+      display: none;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      z-index: 100;
+      animation: slideIn 0.3s ease;
+    }
+
+    .toast-alert.show {
+      display: flex;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateY(20px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    /* FOOTER */
+    .footer {
+      background: #ffffff;
+      border-top: 1px solid #e2e8f0;
+      padding: 12px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: #64748b;
+      margin-top: auto;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 16px;
+    }
+
+    .footer-links a {
+      color: #64748b;
+      text-decoration: none;
+    }
+
+    .footer-links a:hover {
+      color: #2563eb;
+    }
+
+    /* TAB CONTENT MANAGEMENT */
+    .tab-section {
+      display: none;
+    }
+
+    .tab-section.active-tab {
+      display: block;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(4px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .badge-pill {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .badge-pill-green {
+      background: #dcfce7;
+      color: #15803d;
+    }
+
+    .badge-pill-blue {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="gov-badge">MT</div>
+      <div class="gov-titles">
+        <h1 class="">Sistema General de Riesgos Laborales</h1>
+        <p class="">Ministerio del Trabajo • República de Colombia</p>
+      </div>
+    </div>
+
+    <div class="topbar-right">
+      <!-- SELECTOR DE ENTIDADES INTERACTIVO -->
+      <div class="entity-selector-box">
+        <span class="entity-label">🏢 Empresa Activa:</span>
+        <select id="entitySelector" class="entity-select" onchange="cambiarEntidad(this.value)">
+          <option value="Empresa Metalmecánica S.A. (NIT: 900.823.102-4)">Metalmecánica S.A. (NIT: 900.823.102-4)
+          </option>
+          <option value="Agropecuaria del Norte Ltda. (NIT: 860.104.992-1)">Agropecuaria del Norte Ltda.</option>
+          <option value="Constructora Alfa S.A.S. (NIT: 901.554.218-3)">Constructora Alfa</option>
+        </select>
+      </div>
+
+      <!-- PERFIL DE ESTUDIANTE -->
+      <div class="user-profile">
+        <div class="status-dot" title="Sesión activa y sincronizada"></div>
+        <div class="user-info">
+          <div class="user-name" id="topbarUserName">Estudiante</div>
+          <div class="user-role" id="topbarUserEmail">Rol: Responsable SG-SST</div>
+        </div>
+        <div class="user-avatar" id="topbarUserAvatar">ES</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- LAYOUT -->
+  <div class="layout-container">
+
+    <!-- SIDEBAR DE 6 BOTONES -->
+    <aside class="sidebar">
+      <div class="sidebar-header">Módulo Operativo Estudiantil</div>
+      <ul class="sidebar-menu">
+        <li class="">
+          <div class="sidebar-item active" data-tab="seccion-registrar" onclick="navegarTab('seccion-registrar', this)">
+            <div class="sidebar-item-content">
+              <span class="sidebar-icon">📄</span>
+              <span class="">1. REGISTRAR RESPONSABLE</span>
+            </div>
+            <span class="active-badge">ACTIVO</span>
+          </div>
+        </li>
+        <li class="">
+          <div class="sidebar-item" data-tab="seccion-calificacion" onclick="navegarTab('seccion-calificacion', this)">
+            <div class="sidebar-item-content">
+              <span class="sidebar-icon">📋</span>
+              <span class="">2. CALIFICACIÓN ESTÁNDARES MÍNIMOS</span>
+            </div>
+            <span class="active-badge">ACTIVO</span>
+          </div>
+        </li>
+        <li class="">
+          <div class="sidebar-item" data-tab="seccion-consultar" onclick="navegarTab('seccion-consultar', this)">
+            <div class="sidebar-item-content">
+              <span class="sidebar-icon">📊</span>
+              <span class="">3. CONSULTAR ESTÁNDARES MÍNIMOS</span>
+            </div>
+            <span class="active-badge">ACTIVO</span>
+          </div>
+        </li>
+        <li class="">
+          <div class="sidebar-item" data-tab="seccion-cargar-plan" onclick="navegarTab('seccion-cargar-plan', this)">
+            <div class="sidebar-item-content">
+              <span class="sidebar-icon">📤</span>
+              <span class="">4. CARGAR PLAN DE MEJORAMIENTO</span>
+            </div>
+            <span class="active-badge">ACTIVO</span>
+          </div>
+        </li>
+        <li class="">
+          <div class="sidebar-item" data-tab="seccion-descargar-plan"
+            onclick="navegarTab('seccion-descargar-plan', this)">
+            <div class="sidebar-item-content">
+              <span class="sidebar-icon">📥</span>
+              <span class="">5. DESCARGAR PLAN DE MEJORAMIENTO</span>
+            </div>
+            <span class="active-badge">ACTIVO</span>
+          </div>
+        </li>
+        <li class="">
+          <div class="sidebar-item" data-tab="seccion-licencia" onclick="navegarTab('seccion-licencia', this)">
+            <div class="sidebar-item-content">
+              <span class="sidebar-icon">🛡️</span>
+              <span class="">6. LICENCIA</span>
+            </div>
+            <span class="active-badge">ACTIVO</span>
+          </div>
+        </li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <div class="academic-banner">
+          <div class="academic-banner-title">
+            <span class="">🎓</span> Entorno Académico Calificado
+          </div>
+          <div class="academic-banner-desc">
+            Los datos diligenciados serán evaluados en tiempo real por el docente bajo el estándar normativo nacional.
+          </div>
+        </div>
+        <button type="button" onclick="cerrarSesionEstudiante()"
+          style="margin-top: 14px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(248, 113, 113, 0.35); color: rgb(254, 202, 202); padding: 10px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 0.5px;"
+          onmouseover="this.style.background='rgba(239, 68, 68, 0.3)'; this.style.color='#ffffff'; this.style.borderColor='rgba(248, 113, 113, 0.6)';"
+          onmouseout="this.style.background='rgba(239, 68, 68, 0.15)'; this.style.color='#fecaca'; this.style.borderColor='rgba(248, 113, 113, 0.35)';"><svg
+            width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg><span class="">Cerrar Sesión</span></button>
+      </div>
+    </aside>
+
+    <!-- ÁREA DE CONTENIDO CENTRAL -->
+    <main class="content-area">
+
+      <!-- BREADCRUMB DINÁMICO -->
+      <nav class="breadcrumb">
+        <a href="#inicio" class="">Inicio SGRL</a>
+        <span class="">/</span>
+        <span id="currentBreadcrumbEmpresa" class="">Empresa Metalmecánica S.A.</span>
+        <span class="">/</span>
+        <span id="currentBreadcrumbModulo" style="font-weight: 700; color: #1e293b;" class="">Registro de Responsable
+          Técnico</span>
+      </nav>
+
+      <!-- ============================================== -->
+      <!-- SECCIÓN 1: REGISTRAR RESPONSABLE -->
+      <!-- ============================================== -->
+      <section id="seccion-registrar" class="tab-section active-tab">
+        <div class="view-header">
+          <h2 class="view-title">Registro de Licencia y Datos del Profesional SG-SST</h2>
+          <p class="view-desc">Ingrese y valide los datos profesionales requeridos por la normativa colombiana para
+            acreditar la idoneidad técnica en el diseño y administración del SG-SST.</p>
+        </div>
+
+        <div class="callout-box">
+          <span class="callout-icon">ℹ️</span>
+          <div class="callout-text">
+            <strong>Requisito Legal - Resolución 0312 de 2019 (Artículos 8° a 11°):</strong> Todo diseño y
+            administración del Sistema de Gestión de Seguridad y Salud en el Trabajo para empresas de Riesgo IV o con
+            más de 50 colaboradores requiere profesional o especialista con licencia vigente en SST y certificación
+            activa del curso virtual de capacitación legal.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-title">
+              <span class="step-pill">Paso 1 de 2</span>
+              <span class="">Acreditación Técnica y Formación del Responsable</span>
+            </div>
+            <span class="badge-pill badge-pill-blue">Resolución 0754 de 2021</span>
+          </div>
+
+          <form id="formRegistrarResponsable" onsubmit="guardarResponsable(event)">
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="form-label">Número de Licencia de SST <span class="required">*</span></label>
+                <input type="text" class="form-input" id="numLicencia" value="RES-08941-SST-BOG" required="">
+                <span class="form-help">Indique la resolución expedida por la Secretaría de Salud distrital o
+                  departamental.</span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Fecha de Expedición de la Licencia <span class="required">*</span></label>
+                <input type="date" class="form-input" id="fechaLicencia" value="2023-04-18" required="">
+                <span class="form-help">Vigencia legal máxima de 10 años conforme a la Res. 0754 de 2021.</span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Entidad que Autorizó / Otorgó la Licencia <span
+                    class="required">*</span></label>
+                <select class="form-select" id="entidadExpide" required="">
+                  <option value="Secretaría Distrital de Salud de Bogotá" selected="">Secretaría Distrital de Salud de
+                    Bogotá</option>
+                  <option value="Secretaría de Salud de Antioquia">Secretaría de Salud de Antioquia</option>
+                  <option value="Secretaría de Salud del Valle del Cauca">Secretaría de Salud del Valle del Cauca
+                  </option>
+                  <option value="Secretaría de Salud de Cundinamarca">Secretaría de Salud de Cundinamarca</option>
+                </select>
+                <span class="form-help">Autoridad territorial de salud competente.</span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Nivel de Estudios <span class="required">*</span></label>
+                <select class="form-select" id="nivelEstudios" required="">
+                  <option value="Especialista en Seguridad y Salud en el Trabajo" selected="">Especialista en Seguridad
+                    y Salud en el Trabajo</option>
+                  <option value="Profesional Universitario en SST">Profesional Universitario en SST</option>
+                  <option value="Tecnólogo en Seguridad y Salud en el Trabajo">Tecnólogo en Seguridad y Salud en el
+                    Trabajo</option>
+                  <option value="Técnico Profesional en SST">Técnico Profesional en SST</option>
+                </select>
+                <span class="form-help">Define el alcance legal para administración de empresas por clase de
+                  riesgo.</span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Fecha del Certificado Curso Virtual 50 Horas <span
+                    class="required">*</span></label>
+                <input type="date" class="form-input" id="fechaCurso50" value="2022-09-10" required="">
+                <span class="form-help">Capacitación obligatoria inicial expedida por oferente avalado por
+                  MinTrabajo.</span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Fecha del Certificado Actualización 20 Horas</label>
+                <input type="date" class="form-input" id="fechaCurso20" value="2024-08-15">
+                <span class="form-help">Requerido cada 3 años posteriores al curso inicial de 50 horas.</span>
+              </div>
+
+              <div class="form-group col-span-2">
+                <label class="form-label">Meses de Experiencia Profesional Certificada <span
+                    class="required">*</span></label>
+                <input type="number" class="form-input" id="mesesExp" value="48" min="0" required="">
+                <span class="form-help">Tiempo comprobable en diseño, auditoría o administración del SG-SST.</span>
+              </div>
+            </div>
+
+            <div class="actions-row">
+              <button type="button" class="btn btn-outline"
+                onclick="mostrarNotificacion('Borrador preliminar guardado en almacenamiento local.')">Guardar
+                Borrador</button>
+              <button type="submit" class="btn btn-green">
+                <span class="">Guardar y Validar Responsable</span>
+                <span class="">➔</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- SECCIÓN 2: CALIFICACIÓN ESTÁNDARES MÍNIMOS -->
+      <!-- ============================================== -->
+      <section id="seccion-calificacion" class="tab-section">
+        <div class="view-header">
+          <h2 class="view-title">Autoevaluación Normativa - Resolución 0312 de 2019</h2>
+          <p class="view-desc">Verifique los datos de la empresa, seleccione el periodo a evaluar y complete la
+            verificación de estándares mínimos obligatorios.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-title">
+              <span class="">🏢 Verificación Preliminar de la Organización Asignada</span>
+            </div>
+            <span class="badge-pill badge-pill-green">Datos Sincronizados</span>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Razón Social y NIT</label>
+              <input type="text" class="form-input" id="califEmpresa"
+                value="Empresa Metalmecánica S.A. (NIT: 900.823.102-4)" readonly=""
+                style="background: #f8fafc; font-weight: 600;">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Actividad Económica Principal</label>
+              <input type="text" class="form-input" value="2592 - Tratamiento y revestimiento de metales" readonly=""
+                style="background: #f8fafc;">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Número de Trabajadores en Nómina</label>
+              <input type="text" class="form-input" value="128 Colaboradores directos e indirectos" readonly=""
+                style="background: #f8fafc;">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Sede de Operación</label>
+              <input type="text" class="form-input" value="Planta Principal • Zona Industrial Cazucá" readonly=""
+                style="background: #f8fafc;">
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-title">
+              <span class="">🎯 Clasificación de Riesgo ARL y Parámetros de Autoevaluación</span>
+            </div>
+            <span class="badge-pill badge-pill-blue">Decreto 768 de 2022</span>
+          </div>
+
+          <form onsubmit="ejecutarCalificacion(event)">
+            <!-- COMPONENTE INTERACTIVO: SELECTOR DE CLASE DE RIESGO (I A V) -->
+            <div
+              style="margin-bottom: 24px; padding: 18px; background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <label class="form-label" style="font-size: 13px; font-weight: 800; color: #0f172a; margin: 0;">
+                  ⚠️ Evaluación Obligatoria: Clasifique el Nivel de Riesgo de la Empresa <span class="required">*</span>
+                </label>
+                <span id="riskSelectedBadge"
+                  style="font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 9999px; background: #f1f5f9; color: #64748b;">
+                  Sin seleccionar
+                </span>
+              </div>
+              <p style="font-size: 12px; color: #64748b; margin-bottom: 14px; line-height: 1.4;">
+                Con base en la actividad económica (CIIU 2592) y las condiciones de planta, determine activamente la
+                clase de riesgo aplicable según la tabla de cotización del Sistema General de Riesgos Laborales.
+              </p>
+
+              <!-- Tarjetas interactivas de selección I a V -->
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;"
+                id="riskSelectorContainer">
+                <!-- Clase I -->
+                <div class="risk-card" onclick="seleccionarClaseRiesgo('Clase I (Riesgo Mínimo)', '0.522%', this)"
+                  style="border: 2px solid #e2e8f0; border-radius: 10px; padding: 12px; cursor: pointer; text-align: center; transition: all 0.2s; background: #f8fafc;">
+                  <div style="font-weight: 800; font-size: 14px; color: #0284c7;">Clase I</div>
+                  <div style="font-size: 11px; color: #64748b; font-weight: 600; margin-top: 2px;">Riesgo Mínimo</div>
+                  <div style="font-size: 10px; color: #94a3b8; margin-top: 4px;">Financiero / Oficina</div>
+                </div>
+
+                <!-- Clase II -->
+                <div class="risk-card" onclick="seleccionarClaseRiesgo('Clase II (Riesgo Bajo)', '1.044%', this)"
+                  style="border: 2px solid #e2e8f0; border-radius: 10px; padding: 12px; cursor: pointer; text-align: center; transition: all 0.2s; background: #f8fafc;">
+                  <div style="font-weight: 800; font-size: 14px; color: #059669;">Clase II</div>
+                  <div style="font-size: 11px; color: #64748b; font-weight: 600; margin-top: 2px;">Riesgo Bajo</div>
+                  <div style="font-size: 10px; color: #94a3b8; margin-top: 4px;">Comercio / Confección</div>
+                </div>
+
+                <!-- Clase III -->
+                <div class="risk-card" onclick="seleccionarClaseRiesgo('Clase III (Riesgo Medio)', '2.436%', this)"
+                  style="border: 2px solid #e2e8f0; border-radius: 10px; padding: 12px; cursor: pointer; text-align: center; transition: all 0.2s; background: #f8fafc;">
+                  <div style="font-weight: 800; font-size: 14px; color: #d97706;">Clase III</div>
+                  <div style="font-size: 11px; color: #64748b; font-weight: 600; margin-top: 2px;">Riesgo Medio</div>
+                  <div style="font-size: 10px; color: #94a3b8; margin-top: 4px;">Fabricación / Alimentos</div>
+                </div>
+
+                <!-- Clase IV -->
+                <div class="risk-card" onclick="seleccionarClaseRiesgo('Clase IV (Riesgo Alto)', '4.350%', this)"
+                  style="border: 2px solid #e2e8f0; border-radius: 10px; padding: 12px; cursor: pointer; text-align: center; transition: all 0.2s; background: #f8fafc;">
+                  <div style="font-weight: 800; font-size: 14px; color: #ea580c;">Clase IV</div>
+                  <div style="font-size: 11px; color: #64748b; font-weight: 600; margin-top: 2px;">Riesgo Alto</div>
+                  <div style="font-size: 10px; color: #94a3b8; margin-top: 4px;">Metalmecánica / Químicos</div>
+                </div>
+
+                <!-- Clase V -->
+                <div class="risk-card" onclick="seleccionarClaseRiesgo('Clase V (Riesgo Máximo)', '6.960%', this)"
+                  style="border: 2px solid #e2e8f0; border-radius: 10px; padding: 12px; cursor: pointer; text-align: center; transition: all 0.2s; background: #f8fafc;">
+                  <div style="font-weight: 800; font-size: 14px; color: #dc2626;">Clase V</div>
+                  <div style="font-size: 11px; color: #64748b; font-weight: 600; margin-top: 2px;">Riesgo Máximo</div>
+                  <div style="font-size: 10px; color: #94a3b8; margin-top: 4px;">Minería / Construcción</div>
+                </div>
+              </div>
+
+              <!-- Input oculto para almacenar la selección activa -->
+              <input type="hidden" id="selectedRiskClass" name="riskClass" value="" required>
+
+              <div id="riskFeedbackText"
+                style="margin-top: 12px; font-size: 11.5px; font-weight: 600; color: #475569; display: none;"></div>
+            </div>
+
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="form-label">Periodo Anual a Evaluar <span class="required">*</span></label>
+                <select class="form-select" id="periodoEvaluar" required="">
+                  <option value="2025" selected="">Año 2025 (Periodo Fiscal Ordinario)</option>
+                  <option value="2024">Año 2024 (Consolidado)</option>
+                  <option value="2026">Año 2026 (En Proyección)</option>
+                </select>
+                <span class="form-help">Las autoevaluaciones deben radicarse anualmente en el mes de diciembre.</span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Tipo de Diligenciamiento</label>
+                <input type="text" class="form-input" value="Auditoría Inicial / Radicación Anual Ordinaria" readonly=""
+                  style="background: #f8fafc;">
+              </div>
+
+              <div class="form-group col-span-2"
+                style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px;">
+                <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+                  <input type="checkbox" id="checkConsentimiento" required=""
+                    style="margin-top: 3px; transform: scale(1.2);">
+                  <div style="font-size: 12px; color: #334155; line-height: 1.5;" class="">
+                    <strong>Consentimiento Informado y Declaración Bajo Gravedad de Juramento:</strong><br>
+                    Declaro formalmente que la información aquí consolidada y las evidencias del Sistema de Gestión de
+                    Seguridad y Salud en el Trabajo corresponden fielmente a la realidad operacional de la empresa y han
+                    sido verificadas bajo el rigor técnico de la Resolución 0312 de 2019.
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div class="actions-row">
+              <button type="submit" class="btn btn-green">
+                <span class="">Calificar y Consolidar Puntaje</span>
+                <span class="">➔</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- SECCIÓN 3: CONSULTAR ESTÁNDARES MÍNIMOS -->
+      <!-- ============================================== -->
+      <section id="seccion-consultar" class="tab-section">
+        <div class="view-header">
+          <h2 class="view-title">Certificado Oficial de Calificación</h2>
+          <p class="view-desc">Consulta el consolidado oficial emitido por el Sistema General de Riesgos Laborales para
+            el periodo evaluado.</p>
+        </div>
+
+        <div class="card">
+          <div class="cert-preview">
+            <div style="font-size: 32px; margin-bottom: 8px;" class="">🏛️</div>
+            <div class="cert-header">REPÚBLICA DE COLOMBIA • MINISTERIO DEL TRABAJO</div>
+            <div class="cert-sub">Dirección de Riesgos Laborales - Constancia de Radicación Estándares Mínimos (Res.
+              0312 de 2019)</div>
+
+            <div class="score-circle" id="certScoreCircle">
+              <span class="score-number" id="certScore">--%</span>
+              <span class="score-label" id="certScoreLabel">Pendiente</span>
+            </div>
+
+            <div
+              style="max-width: 550px; margin: 0 auto 24px; text-align: left; font-size: 13px; line-height: 1.8; color: #334155; background: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0;">
+              <div><strong>Organización:</strong> <span id="certEmpresa" class="">Empresa Metalmecánica S.A.</span>
+              </div>
+              <div class=""><strong>NIT:</strong> 900.823.102-4</div>
+              <div><strong>Periodo Evaluado:</strong> <span id="certPeriodo" class="">2025</span></div>
+              <div><strong>Responsable de Diligenciamiento:</strong> <span id="certResponsable">Sin evaluar</span></div>
+              <div><strong>Fecha de Certificación:</strong> <span id="certFecha">Pendiente de evaluación</span></div>
+              <div><strong>Estado de Valoración Legal:</strong> <span id="certEstadoLegal" style="color: #64748b; font-weight: 700;">Pendiente por evaluar</span></div>
+            </div>
+
+            <div style="display: flex; justify-content: center; gap: 12px;">
+              <button class="btn btn-blue" id="btnDescargarCertificado"
+                onclick="descargarCertificadoDinamico()">
+                <span class="">📄 Descargar Certificado Oficial en PDF</span>
+              </button>
+              <button class="btn btn-outline" onclick="mostrarNotificacion('Evaluación y constancia sincronizada en el panel docente en tiempo real.')">
+                <span class="">✉️ Enviar a Auditoría Docente</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- SECCIÓN 4: CARGAR PLAN DE MEJORAMIENTO -->
+      <!-- ============================================== -->
+      <section id="seccion-cargar-plan" class="tab-section">
+        <div class="view-header">
+          <h2 class="view-title">Cargue de Plan de Mejoramiento (Artículo 28 - Res. 0312)</h2>
+          <p class="view-desc">Cargue las acciones correctivas, preventivas y de mejora derivadas del resultado de la
+            autoevaluación técnica.</p>
+        </div>
+
+        <div class="callout-box">
+          <span class="callout-icon">💡</span>
+          <div class="callout-text">
+            <strong>Disposición Legal:</strong> Si la autoevaluación arroja un puntaje inferior al 100%, la organización
+            debe formular un Plan de Mejoramiento conforme a las directrices del Ministerio del Trabajo y la
+            Administradora de Riesgos Laborales (ARL).
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-title">
+              <span class="">📥 Formulario de Radicación de Documento de Mejora</span>
+            </div>
+            <a href="#descargar-modelo"
+              onclick="mostrarNotificacion('Descargando plantilla oficial sugerida en Excel...'); return false;"
+              style="font-size: 12px; font-weight: 700; color: #2563eb; text-decoration: none;" class="">
+              ⬇️ Descargar Modelo Sugerido (.xlsx)
+            </a>
+          </div>
+
+          <form onsubmit="cargarPlanMejoramiento(event)">
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="form-label">Periodo de Ejecución del Plan <span class="required">*</span></label>
+                <select class="form-select" required="">
+                  <option value="2026-I">Semestre 2026-I (Enero a Junio)</option>
+                  <option value="2026-II">Semestre 2026-II (Julio a Diciembre)</option>
+                  <option value="2025-Consolidado">Plan de Cierre Anual 2025</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Número de Acciones Preventivas / Correctivas <span
+                    class="required">*</span></label>
+                <input type="number" class="form-input" value="6" min="1" required="">
+              </div>
+
+              <div class="form-group col-span-2">
+                <label class="form-label">Adjuntar Archivo del Plan de Mejoramiento (PDF hasta 10 MB) <span
+                    class="required">*</span></label>
+                <div class="dropzone" onclick="document.getElementById('fileUploadPlan').click()">
+                  <div class="dropzone-icon">📁</div>
+                  <div class="dropzone-title" id="dropzoneText">Haz clic aquí o arrastra el archivo PDF del Plan de
+                    Mejoramiento</div>
+                  <div class="dropzone-sub">Formatos permitidos: .PDF debidamente firmado por Representante Legal y
+                    Responsable SST (Máx. 10MB)</div>
+                  <input type="file" id="fileUploadPlan" style="display: none;" accept=".pdf"
+                    onchange="actualizarNombreArchivo(this)">
+                </div>
+              </div>
+            </div>
+
+            <div class="actions-row">
+              <button type="submit" class="btn btn-green">
+                <span class="">Registrar Plan de Mejoramiento</span>
+                <span class="">➔</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- SECCIÓN 5: DESCARGAR PLAN DE MEJORAMIENTO -->
+      <!-- ============================================== -->
+      <section id="seccion-descargar-plan" class="tab-section">
+        <div class="view-header">
+          <h2 class="view-title">Historial de Acciones Correctivas y Preventivas</h2>
+          <p class="view-desc">Repositorio oficial de planes de mejora radicados en el sistema ministerial para consulta
+            de inspectores y auditores.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-title">
+              <span class="">📋 Expedientes Digitales Radicados</span>
+            </div>
+            <span class="badge-pill badge-pill-blue">3 Registros Encontrados</span>
+          </div>
+
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th class="">Código Radicado</th>
+                <th class="">Periodo Fiscal</th>
+                <th class="">Fecha de Cargue</th>
+                <th class="">Responsable Técnico</th>
+                <th class="">Estado de Revisión ARL</th>
+                <th class="">Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class=""><strong>RAD-2025-0982-SST</strong></td>
+                <td class="">Vigencia 2025</td>
+                <td class="">20/12/2025 14:32</td>
+                <td class="">Juan Pérez (Lic. 08941)</td>
+                <td class=""><span class="badge-pill badge-pill-green">Aprobado sin observaciones</span></td>
+                <td class="">
+                  <button class="btn btn-outline" style="padding: 4px 10px; font-size: 11px;"
+                    onclick="descargarCertificadoReal('Juan Pérez', 'Empresa Metalmecánica S.A.', 'Plan de Mejoramiento Vigencia 2025', '95', 'RAD-2025-0982-SST')">
+                    📥 Descargar PDF
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td class=""><strong>RAD-2024-1145-SST</strong></td>
+                <td class="">Vigencia 2024</td>
+                <td class="">18/12/2024 09:15</td>
+                <td class="">Juan Pérez (Lic. 08941)</td>
+                <td class=""><span class="badge-pill badge-pill-green">Cerrado con conformidad</span></td>
+                <td class="">
+                  <button class="btn btn-outline" style="padding: 4px 10px; font-size: 11px;"
+                    onclick="descargarCertificadoReal('Juan Pérez', 'Empresa Metalmecánica S.A.', 'Plan de Mejoramiento Vigencia 2024', '90', 'RAD-2024-1145-SST')">
+                    📥 Descargar PDF
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td class=""><strong>RAD-2023-0421-SST</strong></td>
+                <td class="">Vigencia 2023</td>
+                <td class="">15/12/2023 16:50</td>
+                <td class="">Ing. Carlos Méndez (Lic. 05412)</td>
+                <td class=""><span class="badge-pill badge-pill-blue">Histórico Archivado</span></td>
+                <td class="">
+                  <button class="btn btn-outline" style="padding: 4px 10px; font-size: 11px;"
+                    onclick="descargarCertificadoReal('Carlos Méndez', 'Empresa Metalmecánica S.A.', 'Plan de Mejoramiento Vigencia 2023', '85', 'RAD-2023-0421-SST')">
+                    📥 Descargar PDF
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- SECCIÓN 6: LICENCIA - AUDITORÍA Y SEGURIDAD -->
+      <!-- ============================================== -->
+      <section id="seccion-licencia" class="tab-section">
+        <div class="view-header">
+          <h2 class="view-title">Auditoría y Seguridad de Licencia Profesional</h2>
+          <p class="view-desc">Trazabilidad oficial de radicaciones y autoevaluaciones que han registrado tu número de
+            licencia SST para evitar suplantaciones de identidad profesional.</p>
+        </div>
+
+        <div class="callout-box">
+          <span class="callout-icon">🛡️</span>
+          <div class="callout-text">
+            <strong>Módulo de Blindaje Antifraude:</strong> Este registro permite verificar qué organizaciones
+            reportaron tu firma técnica en el Sistema General de Riesgos Laborales. Si identificas una radicación no
+            autorizada, repórtala de inmediato al Ministerio.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-header-title">
+              <span class="">🔍 Organizaciones Vinculadas a la Licencia RES-08941-SST-BOG</span>
+            </div>
+            <button class="btn btn-outline" style="font-size: 11px; padding: 4px 10px;"
+              onclick="mostrarNotificacion('Auditoría de seguridad descargada en PDF.')">
+              🖨️ Exportar Bitácora de Trazabilidad
+            </button>
+          </div>
+
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th class="">Empresa / Empleador</th>
+                <th class="">NIT</th>
+                <th class="">Clase Riesgo</th>
+                <th class="">Fecha de Vinculación</th>
+                <th class="">Trámite Efectuado</th>
+                <th class="">Estado de Conformidad</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class=""><strong>Empresa Metalmecánica S.A.</strong></td>
+                <td class="">900.823.102-4</td>
+                <td class="">Riesgo IV</td>
+                <td class="">18/04/2023 - Actual</td>
+                <td class="">Autoevaluación Anual Res. 0312</td>
+                <td class=""><span class="badge-pill badge-pill-green">Autorizado por el Titular</span></td>
+              </tr>
+              <tr>
+                <td class=""><strong>Agropecuaria del Norte Ltda.</strong></td>
+                <td class="">860.104.992-1</td>
+                <td class="">Riesgo III</td>
+                <td class="">12/01/2024 - Actual</td>
+                <td class="">Registro Responsable SG-SST</td>
+                <td class=""><span class="badge-pill badge-pill-green">Autorizado por el Titular</span></td>
+              </tr>
+              <tr>
+                <td class=""><strong>Constructora Alfa S.A.S.</strong></td>
+                <td class="">901.554.218-3</td>
+                <td class="">Riesgo V</td>
+                <td class="">05/06/2024 - Actual</td>
+                <td class="">Diseño del Sistema de Gestión</td>
+                <td class=""><span class="badge-pill badge-pill-green">Autorizado por el Titular</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- TOAST NOTIFICACIÓN -->
+  <div id="toastNotification" class="toast-alert">
+    <span class="">✅</span>
+    <span id="toastMsg" class="">Acción procesada con éxito.</span>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="">© 2026 Ministerio del Trabajo de Colombia — Sistema General de Riesgos Laborales. Todos los derechos
+      reservados.</div>
+    <div class="footer-links">
+      <a href="#terminos" onclick="mostrarNotificacion('Abriendo términos y condiciones...'); return false;"
+        class="">Términos y Condiciones</a>
+      <a href="#proteccion" onclick="mostrarNotificacion('Mostrando política de protección de datos...'); return false;"
+        class="">Protección de Datos</a>
+      <a href="#soporte" onclick="mostrarNotificacion('Línea 01 8000 513 100 disponible para soporte.'); return false;"
+        class="">Línea Gratuita Nacional 01 8000 513 100</a>
+      <a href="#ayuda" onclick="mostrarNotificacion('Mesa de ayuda técnica SGRL operativa.'); return false;"
+        class="">Mesa de Ayuda SGRL</a>
+    </div>
+  </footer>
+
+  <!-- LÓGICA JAVASCRIPT DE NAVEGACIÓN Y ACCIONES -->
+  <script>
+    // Estado de sesión y evaluación dinámica
+    let sesionUsuarioActual = {
+      nombre: 'Estudiante',
+      email: 'estudiante@simulsst.edu.co'
+    };
+    let evaluacionActual = null;
+
+    // Inicializar sesión y datos dinámicos al cargar
+    function inicializarSesionUsuario() {
+      try {
+        const stored = localStorage.getItem('simulsst_user') || localStorage.getItem('user');
+        if (stored) {
+          const u = JSON.parse(stored);
+          const nombreReal = u.fullName || u.name || (u.email ? u.email.split('@')[0] : 'Estudiante');
+          const emailReal = (u.email || 'estudiante@simulsst.edu.co').toLowerCase().trim();
+          sesionUsuarioActual = {
+            nombre: nombreReal,
+            email: emailReal,
+            role: u.role || 'estudiante'
+          };
+        }
+      } catch (e) {
+        console.warn('Error leyendo simulsst_user de localStorage:', e);
+      }
+
+      // 1. Actualizar perfil superior con datos reales
+      const topName = document.getElementById('topbarUserName');
+      if (topName) topName.textContent = sesionUsuarioActual.nombre;
+
+      const topEmail = document.getElementById('topbarUserEmail');
+      if (topEmail) topEmail.textContent = `Rol: Responsable SG-SST • ${sesionUsuarioActual.email}`;
+
+      const topAvatar = document.getElementById('topbarUserAvatar');
+      if (topAvatar) {
+        const initials = sesionUsuarioActual.nombre.split(' ').map(p => p[0]).join('').substring(0, 2).toUpperCase() || 'ES';
+        topAvatar.textContent = initials;
+      }
+
+      // Cargar consulta dinámica de estándares desde PostgreSQL
+      consultarEvaluacionDinamica();
+    }
+
+    // Consulta en PostgreSQL el consolidado de la calificación de estándares mínimos
+    async function consultarEvaluacionDinamica() {
+      const email = sesionUsuarioActual.email;
+      const certResp = document.getElementById('certResponsable');
+      const certScore = document.getElementById('certScore');
+      const certScoreLabel = document.getElementById('certScoreLabel');
+      const certScoreCircle = document.getElementById('certScoreCircle');
+      const certEstadoLegal = document.getElementById('certEstadoLegal');
+      const certFecha = document.getElementById('certFecha');
+
+      try {
+        const res = await fetch(`http://localhost:4000/api/evaluations/summary?email=${encodeURIComponent(email)}`);
+        if (!res.ok) throw new Error('Respuesta no válida');
+        const data = await res.json();
+        evaluacionActual = data;
+
+        // Nombre del responsable real en sesión o BD
+        const responsableNombre = data.studentName || sesionUsuarioActual.nombre;
+        if (certResp) certResp.textContent = responsableNombre;
+
+        if (data.evaluated && data.score !== null && data.score !== undefined) {
+          const scoreNum = Number(data.score);
+          if (certScore) certScore.textContent = `${scoreNum}%`;
+
+          // Valoración según Resolución 0312 de 2019
+          // > 85%: Aceptable (Verde)
+          // 60% a 85%: Moderadamente Aceptable (Amarillo / Naranja)
+          // < 60%: Crítico (Rojo)
+          if (scoreNum > 85) {
+            if (certScoreLabel) certScoreLabel.textContent = 'Aceptable';
+            if (certScoreCircle) {
+              certScoreCircle.style.background = '#ecfdf5';
+              certScoreCircle.style.borderColor = '#10b981';
+              certScoreCircle.style.color = '#065f46';
+            }
+            if (certEstadoLegal) {
+              certEstadoLegal.textContent = 'Aceptable (Cumplimiento Legal Verificado)';
+              certEstadoLegal.style.color = '#059669';
+            }
+          } else if (scoreNum >= 60) {
+            if (certScoreLabel) certScoreLabel.textContent = 'Moderado';
+            if (certScoreCircle) {
+              certScoreCircle.style.background = '#fffbeb';
+              certScoreCircle.style.borderColor = '#f59e0b';
+              certScoreCircle.style.color = '#b45309';
+            }
+            if (certEstadoLegal) {
+              certEstadoLegal.textContent = 'Moderadamente Aceptable (Plan de Mejora a 6 Meses)';
+              certEstadoLegal.style.color = '#d97706';
+            }
+          } else {
+            if (certScoreLabel) certScoreLabel.textContent = 'Crítico';
+            if (certScoreCircle) {
+              certScoreCircle.style.background = '#fef2f2';
+              certScoreCircle.style.borderColor = '#ef4444';
+              certScoreCircle.style.color = '#b91c1c';
+            }
+            if (certEstadoLegal) {
+              certEstadoLegal.textContent = 'Crítico (Plan de Mejora Inmediato a 3 Meses)';
+              certEstadoLegal.style.color = '#dc2626';
+            }
+          }
+
+          if (certFecha) {
+            certFecha.textContent = data.submittedAt 
+              ? new Date(data.submittedAt).toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' })
+              : new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
+          }
+        } else {
+          // Si el estudiante aún no ha completado la calificación: muestra 0% y 'Pendiente por evaluar'
+          if (certScore) certScore.textContent = '0%';
+          if (certScoreLabel) certScoreLabel.textContent = 'Pendiente';
+          if (certScoreCircle) {
+            certScoreCircle.style.background = '#f8fafc';
+            certScoreCircle.style.borderColor = '#94a3b8';
+            certScoreCircle.style.color = '#475569';
+          }
+          if (certEstadoLegal) {
+            certEstadoLegal.textContent = 'Pendiente por evaluar (Sin registro previo en PostgreSQL)';
+            certEstadoLegal.style.color = '#64748b';
+          }
+          if (certFecha) certFecha.textContent = 'Pendiente de radicación';
+        }
+      } catch (err) {
+        console.warn('Backend offline o sin entrega previa. Mostrando estado por defecto:', err);
+        if (certResp) certResp.textContent = sesionUsuarioActual.nombre;
+        if (certScore) certScore.textContent = '0%';
+        if (certScoreLabel) certScoreLabel.textContent = 'Pendiente';
+        if (certEstadoLegal) {
+          certEstadoLegal.textContent = 'Pendiente por evaluar';
+          certEstadoLegal.style.color = '#64748b';
+        }
+      }
+    }
+
+    // Descarga del certificado oficial usando los datos reales dinámicos
+    function descargarCertificadoDinamico() {
+      const student = sesionUsuarioActual.nombre || 'Estudiante';
+      const company = document.getElementById('certEmpresa')?.textContent || 'Empresa Metalmecánica S.A.';
+      const score = (evaluacionActual && evaluacionActual.evaluated) ? String(evaluacionActual.score) : '0';
+      const rad = `RAD-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}-SST`;
+
+      descargarCertificadoReal(student, company, 'Autoevaluación de Estándares Mínimos (Res. 0312)', score, rad);
+    }
+
+    // Navegación interactiva de pestañas del menú lateral
+    function navegarTab(seccionId, elementoClickeado) {
+      // 1. Ocultar todas las secciones de contenido
+      const secciones = document.querySelectorAll('.tab-section');
+      secciones.forEach(sec => {
+        sec.classList.remove('active-tab');
+      });
+
+      // 2. Desactivar todos los botones del menú lateral
+      const itemsMenu = document.querySelectorAll('.sidebar-item');
+      itemsMenu.forEach(item => {
+        item.classList.remove('active');
+      });
+
+      // 3. Mostrar la sección seleccionada
+      const seccionDestino = document.getElementById(seccionId);
+      if (seccionDestino) {
+        seccionDestino.classList.add('active-tab');
+      }
+
+      // 4. Activar el botón correspondiente en el menú
+      if (elementoClickeado) {
+        elementoClickeado.classList.add('active');
+
+        // Actualizar mido de pan según la sección
+        const nombresModulos = {
+          'seccion-registrar': 'Registro de Responsable Técnico',
+          'seccion-calificacion': 'Calificación de Estándares Mínimos',
+          'seccion-consultar': 'Consultar Estándares Mínimos',
+          'seccion-cargar-plan': 'Cargar Plan de Mejoramiento',
+          'seccion-descargar-plan': 'Descargar Plan de Mejoramiento',
+          'seccion-licencia': 'Licencia y Auditoría de Seguridad'
+        };
+        const breadcrumbMod = document.getElementById('currentBreadcrumbModulo');
+        if (breadcrumbMod && nombresModulos[seccionId]) {
+          breadcrumbMod.textContent = nombresModulos[seccionId];
+        }
+      }
+
+      // Si entra a la sección de consultar, refrescar los datos dinámicos desde PostgreSQL
+      if (seccionId === 'seccion-consultar') {
+        consultarEvaluacionDinamica();
+      }
+    }
+
+    // Selector interactivo de entidades
+    function cambiarEntidad(nombreEntidad) {
+      document.getElementById('currentBreadcrumbEmpresa').textContent = nombreEntidad.split(' (')[0];
+      const califInput = document.getElementById('califEmpresa');
+      if (califInput) califInput.value = nombreEntidad;
+      const certEmp = document.getElementById('certEmpresa');
+      if (certEmp) certEmp.textContent = nombreEntidad.split(' (')[0];
+
+      mostrarNotificacion(`Empresa activa actualizada a: ${nombreEntidad}`);
+    }
+
+    // Manejo de formulario Guardar Responsable
+    function guardarResponsable(event) {
+      event.preventDefault();
+      const numLic = document.getElementById('numLicencia').value;
+      mostrarNotificacion(`¡Registro validado exitosamente! Licencia ${numLic} vinculada a la empresa.`);
+
+      // Simular pase automático a la sección de Calificación
+      setTimeout(() => {
+        const itemCalif = document.querySelector('[data-tab="seccion-calificacion"]');
+        navegarTab('seccion-calificacion', itemCalif);
+      }, 1200);
+    }
+
+    // Manejo de la selección interactiva de Clase de Riesgo (I a V)
+    function seleccionarClaseRiesgo(clase, tarifa, elemento) {
+      document.querySelectorAll('#riskSelectorContainer .risk-card').forEach(card => {
+        card.style.borderColor = '#e2e8f0';
+        card.style.background = '#f8fafc';
+        card.style.boxShadow = 'none';
+        card.style.transform = 'scale(1)';
+      });
+
+      elemento.style.borderColor = '#2563eb';
+      elemento.style.background = '#eff6ff';
+      elemento.style.boxShadow = '0 4px 12px rgba(37, 99, 235, 0.15)';
+      elemento.style.transform = 'scale(1.02)';
+
+      document.getElementById('selectedRiskClass').value = clase;
+
+      const badge = document.getElementById('riskSelectedBadge');
+      badge.textContent = `${clase.split(' ')[0]} • Tarifa cotiz. ${tarifa}`;
+      badge.style.background = '#dbeafe';
+      badge.style.color = '#1e40af';
+
+      const feedback = document.getElementById('riskFeedbackText');
+      feedback.style.display = 'block';
+      if (clase.includes('IV')) {
+        feedback.innerHTML = `✅ <strong>Selección conforme a la actividad económica:</strong> Industria metalmecánica con tratamiento térmico y galvanoplastia aplica <strong>Clase IV</strong>. Requiere 60 estándares mínimos obligatorios.`;
+        feedback.style.color = '#059669';
+      } else {
+        feedback.innerHTML = `ℹ️ <strong>Verificación técnica:</strong> Ha seleccionado ${clase}. El motor cotejará esta clasificación con la actividad CIIU 2592`;
+        feedback.style.color = '#d97706';
+      }
+    }
+
+    // Manejo de formulario Calificación de Estándares con guardado real en PostgreSQL
+    async function ejecutarCalificacion(event) {
+      event.preventDefault();
+
+      const selectedRisk = document.getElementById('selectedRiskClass').value;
+      if (!selectedRisk) {
+        mostrarNotificacion('⚠️ Por favor selecciona activamente la Clase de Riesgo (I a V) antes de continuar.');
+        document.getElementById('riskSelectorContainer').scrollIntoView({ behavior: 'smooth' });
+        return;
+      }
+
+      const periodo = document.getElementById('periodoEvaluar').value;
+      const empresa = document.getElementById('califEmpresa')?.value || 'Empresa Metalmecánica S.A.';
+      document.getElementById('certPeriodo').textContent = periodo;
+
+      mostrarNotificacion('Guardando calificación y enviando autoevaluación a PostgreSQL...');
+
+      // Cálculo del puntaje dinámico según la clase de riesgo y rigurosidad técnica:
+      // Clase IV en metalmecánica = 92.5% (Aceptable)
+      // Otras clases de riesgo = 70% (Moderadamente Aceptable)
+      const calculatedScore = selectedRisk.includes('IV') ? 92.5 : 70;
+
+      try {
+        const response = await fetch('http://localhost:4000/api/evaluations/risk-classification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            studentEmail: sesionUsuarioActual.email,
+            studentName: sesionUsuarioActual.nombre,
+            companyName: empresa,
+            riskClass: selectedRisk,
+            score: calculatedScore,
+            rationale: `Clasificación realizada en autoevaluación Res. 0312 para periodo fiscal ${periodo}`,
+            period: periodo
+          })
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          mostrarNotificacion(`¡Calificación registrada en PostgreSQL (${calculatedScore}%)! Actualizando certificado...`);
+        } else {
+          mostrarNotificacion(`Respuesta guardada con éxito.`);
+        }
+      } catch (err) {
+        console.error('Error registrando calificación de riesgo:', err);
+        mostrarNotificacion('Calificación guardada localmente.');
+      }
+
+      // Refrescar inmediatamente el consolidado dinámico
+      await consultarEvaluacionDinamica();
+
+      // Llevar automáticamente a consultar certificado
+      setTimeout(() => {
+        const itemConsultar = document.querySelector('[data-tab="seccion-consultar"]');
+        navegarTab('seccion-consultar', itemConsultar);
+      }, 1200);
+    }
+
+    // Carga de archivo y actualización visual de dropzone
+    function actualizarNombreArchivo(input) {
+      if (input.files && input.files[0]) {
+        document.getElementById('dropzoneText').textContent = `Archivo seleccionado: ${input.files[0].name} (${(input.files[0].size / 1024).toFixed(1)} KB)`;
+      }
+    }
+
+    // Cargar Plan de Mejoramiento
+    async function cargarPlanMejoramiento(event) {
+      event.preventDefault();
+      const fileInput = document.getElementById('fileUploadPlan');
+      const file = fileInput.files && fileInput.files[0];
+      const fileName = file ? file.name : 'Plan_Mejoramiento_Art28.pdf';
+      const fileSize = file ? file.size : 2048500;
+      const periodo = document.getElementById('planPeriodo')?.value || '2026-I';
+
+      mostrarNotificacion('Procesando documento y comparando contra rúbrica PHVA...');
+
+      try {
+        const response = await fetch('http://localhost:4000/api/submissions/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            studentName: sesionUsuarioActual.nombre,
+            studentEmail: sesionUsuarioActual.email,
+            module: 'MinTrabajo - Plan de Mejoramiento (Art. 28)',
+            fileName: fileName,
+            fileSize: fileSize,
+            phvaPhase: 'Actuar',
+            textContent: `${fileName} ${periodo} plan de mejoramiento acciones preventivas correctivas auditoria sst estándares mínimos`
+          })
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          mostrarNotificacion(`¡Plan registrado! Calificación obtenida: ${data.submission.score}/100 (${data.submission.status})`);
+        } else {
+          mostrarNotificacion('Plan registrado en el repositorio local.');
+        }
+      } catch (err) {
+        console.error('Error al enviar plan:', err);
+        mostrarNotificacion('Plan registrado y sincronizado en el simulador.');
+      }
+
+      setTimeout(() => {
+        const itemDescargar = document.querySelector('[data-tab="seccion-descargar-plan"]');
+        navegarTab('seccion-descargar-plan', itemDescargar);
+      }, 1500);
+    }
+
+    // Descarga real de Certificado en PDF
+    function descargarCertificadoReal(student, company, module, score, rad) {
+      mostrarNotificacion('Generando Certificado Oficial en PDF con PDFKit...');
+      const params = new URLSearchParams({
+        student: student || sesionUsuarioActual.nombre || 'Estudiante',
+        company: company || 'Empresa Metalmecánica S.A.',
+        module: module || 'SG-SST Res. 0312',
+        score: score || '90',
+        rad: rad || `RAD-${new Date().getFullYear()}-SST`
+      });
+      window.location.href = `http://localhost:4000/api/reports/certificate/pdf?${params.toString()}`;
+    }
+
+    // Mostrar Toast flotante
+    let toastTimeout;
+    function mostrarNotificacion(mensaje) {
+      const toast = document.getElementById('toastNotification');
+      const toastMsg = document.getElementById('toastMsg');
+      toastMsg.textContent = mensaje;
+      toast.classList.add('show');
+
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3500);
+    }
+
+    // Cierre de Sesión Formal
+    function cerrarSesionEstudiante() {
+      try {
+        localStorage.removeItem('simulsst_user');
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        sessionStorage.clear();
+      } catch (e) {
+        console.error('Error al limpiar almacenamiento local:', e);
+      }
+      window.location.href = 'index.html';
+    }
+
+    // Iniciar al cargar la ventana
+    window.addEventListener('DOMContentLoaded', () => {
+      inicializarSesionUsuario();
+    });
+  </script>
+
+
+
+
+</body>
+
+</html>

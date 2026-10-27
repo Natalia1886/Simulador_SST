@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SimulSST Pro — Registro y Gestión de Accesos</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#0070ba', // Azul cian del escudo
+              600: '#004b87', // Azul real corporativo
+              700: '#003366', // Azul marino del casco
+              800: '#002244',
+              900: '#0f172a',
+            },
+            amberAccent: '#f59e0b', // Amarillo de la gráfica de barras
+            emeraldAccent: '#10b981', // Verde de la barra
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body
+  class="bg-slate-50 min-h-screen flex flex-col justify-between text-slate-800 antialiased selection:bg-brand-500 selection:text-white bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-100/60 via-slate-50 to-slate-100">
+
+  <!-- Top Navigation Header -->
+  <header class="w-full max-w-7xl mx-auto px-4 sm:px-8 py-5 flex items-center justify-between">
+    <a href="index.html" class="flex items-center gap-3.5 group">
+      <!-- Logo Oficial con sombra suave y borde sutil -->
+      <div
+        class="w-12 h-12 rounded-xl overflow-hidden shadow-md shadow-blue-900/10 border border-slate-200/80 bg-white p-1 transition-transform group-hover:scale-105">
+        <img src="logo.jpeg" alt="Logo SimulSST Pro" class="w-full h-full object-contain">
+      </div>
+      <div>
+        <span
+          class="block font-extrabold text-xl tracking-tight text-slate-900 group-hover:text-brand-600 transition-colors">SimulSST
+          Pro</span>
+        <span class="block text-xs font-medium text-slate-500">Gestión de Usuarios y Accesos</span>
+      </div>
+    </a>
+
+    <div
+      class="hidden sm:inline-flex items-center gap-2 bg-white/90 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-semibold text-emerald-700 border border-emerald-200 shadow-sm">
+      <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+
+    </div>
+  </header>
+
+  <!-- Main Card Container -->
+  <main class="flex-1 flex items-center justify-center px-4 py-8 sm:py-12">
+    <div
+      class="w-full max-w-md bg-white rounded-3xl shadow-2xl shadow-blue-950/10 border border-slate-200/80 p-8 sm:p-10 relative overflow-hidden backdrop-blur-sm">
+
+      <!-- Top Decorative Accent Bar inspirado en el logo -->
+      <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-brand-700 via-brand-500 to-amberAccent">
+      </div>
+
+      <!-- Card Header -->
+      <div class="text-center mb-8">
+        <div
+          class="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-50 to-blue-100 border border-blue-200/60 flex items-center justify-center text-brand-600 mx-auto mb-4 shadow-inner">
+          <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <line x1="19" y1="8" x2="19" y2="14"></line>
+            <line x1="22" y1="11" x2="16" y2="11"></line>
+          </svg>
+        </div>
+        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Crear Nuevo Usuario</h1>
+        <p class="text-sm text-slate-500 mt-1.5">Registra credenciales para habilitar el acceso al sistema</p>
+      </div>
+
+      <!-- Message Banner -->
+      <div id="messageBanner" class="hidden mb-6 p-4 rounded-xl text-sm font-medium transition-all"></div>
+
+      <!-- Form -->
+      <form id="registerForm" class="space-y-5">
+
+        <!-- Role Selection Tabs -->
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">Rol de Usuario</label>
+          <div class="grid grid-cols-2 gap-3">
+            <label id="roleEstudiante"
+              class="cursor-pointer border-2 border-brand-500 bg-brand-50/70 rounded-2xl p-3.5 text-center transition-all shadow-sm">
+              <input type="radio" name="role" value="estudiante" checked class="hidden">
+              <span class="block font-bold text-sm text-brand-900">Estudiante</span>
+              <span class="block text-[11px] text-brand-600 font-medium mt-0.5">MinTrabajo & SURA</span>
+            </label>
+            <label id="roleDocente"
+              class="cursor-pointer border-2 border-slate-200 bg-white rounded-2xl p-3.5 text-center transition-all hover:border-slate-300">
+              <input type="radio" name="role" value="docente" class="hidden">
+              <span class="block font-bold text-sm text-slate-700">Docente</span>
+              <span class="block text-[11px] text-slate-500 font-medium mt-0.5">Panel & Métricas</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Full Name Field -->
+        <div>
+          <label for="fullName" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+            Nombre Completo <span class="text-red-500">*</span>
+          </label>
+          <input type="text" id="fullName" required placeholder="Ej: Natalia Valencia Gómez"
+            class="w-full h-12 px-4 rounded-xl border border-slate-300 bg-slate-50/50 text-slate-900 text-sm focus:outline-none focus:ring-4 focus:ring-brand-500/15 focus:border-brand-500 focus:bg-white transition-all">
+        </div>
+
+        <!-- Phone Field -->
+        <div>
+          <label for="phone" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+            Número de Celular <span class="text-red-500">*</span>
+          </label>
+          <input type="tel" id="phone" required placeholder="Ej: 310 123 4567"
+            class="w-full h-12 px-4 rounded-xl border border-slate-300 bg-slate-50/50 text-slate-900 text-sm focus:outline-none focus:ring-4 focus:ring-brand-500/15 focus:border-brand-500 focus:bg-white transition-all">
+        </div>
+
+        <!-- Email Field -->
+        <div>
+          <label for="email" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+            Correo Electrónico <span class="text-red-500">*</span>
+          </label>
+          <input type="email" id="email" required placeholder="ejemplo@correo.com"
+            class="w-full h-12 px-4 rounded-xl border border-slate-300 bg-slate-50/50 text-slate-900 text-sm focus:outline-none focus:ring-4 focus:ring-brand-500/15 focus:border-brand-500 focus:bg-white transition-all">
+        </div>
+
+        <!-- Password Field -->
+        <div>
+          <label for="password"
+            class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Contraseña Inicial /
+            Cédula <span class="text-red-500">*</span></label>
+          <input type="password" id="password" required placeholder="••••••••••••"
+            class="w-full h-12 px-4 rounded-xl border border-slate-300 bg-slate-50/50 text-slate-900 text-sm focus:outline-none focus:ring-4 focus:ring-brand-500/15 focus:border-brand-500 focus:bg-white transition-all">
+        </div>
+
+        <!-- Group Field (Para estudiantes) -->
+        <div id="groupField">
+          <label for="groupId" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Grupo
+            Académico (Opcional)</label>
+          <input type="text" id="groupId" placeholder="Ej: Grupo 8A • Periodo 2026-2"
+            class="w-full h-12 px-4 rounded-xl border border-slate-300 bg-slate-50/50 text-slate-900 text-sm focus:outline-none focus:ring-4 focus:ring-brand-500/15 focus:border-brand-500 focus:bg-white transition-all">
+        </div>
+
+        <!-- Teacher Verification Code Field (Visible solo para rol Docente / Profesor) -->
+        <div id="teacherCodeField" class="hidden">
+          <label for="docenteCode" class="block text-xs font-bold uppercase tracking-wider text-emerald-700 mb-1.5">
+            Código de Autorización Docente <span class="text-red-500">*</span>
+          </label>
+          <input type="password" id="docenteCode" placeholder="Ingresa la clave secreta institucional de profesor"
+            class="w-full h-12 px-4 rounded-xl border border-emerald-300 bg-emerald-50/30 text-slate-900 text-sm focus:outline-none focus:ring-4 focus:ring-emerald-500/15 focus:border-emerald-500 focus:bg-white transition-all">
+          <p class="text-[11px] text-slate-500 mt-1">Clave de seguridad requerida para habilitar privilegios de profesor
+            en el sistema.</p>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" id="submitBtn"
+          class="w-full h-12 mt-2 bg-gradient-to-r from-brand-700 via-brand-600 to-brand-500 hover:from-brand-800 hover:to-brand-600 text-white font-semibold text-sm rounded-xl shadow-lg shadow-brand-600/30 hover:shadow-xl hover:shadow-brand-600/40 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer">
+          <span>GUARDAR</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+          </svg>
+        </button>
+
+      </form>
+
+      <!-- Bottom Links -->
+      <div
+        class="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-slate-500">
+        <a href="index.html" class="hover:text-brand-600 transition-colors flex items-center gap-1">
+          <span>&larr;</span> Volver al Inicio
+        </a>
+        <a href="index.html?rol=estudiante" id="linkIniciarSesion" class="text-brand-600 hover:text-brand-700 hover:underline">
+          Iniciar Sesión
+        </a>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="w-full text-center py-4 text-xs text-slate-400">
+    SimulSST Pro © 2026 Plataforma Educativa de Seguridad y Salud en el Trabajo.
+  </footer>
+
+  <script>
+    // Radio button role selector logic
+    const roleEstudiante = document.getElementById('roleEstudiante');
+    const roleDocente = document.getElementById('roleDocente');
+    const roleInputs = document.querySelectorAll('input[name="role"]');
+    const teacherCodeField = document.getElementById('teacherCodeField');
+    const groupField = document.getElementById('groupField');
+    const linkIniciarSesion = document.getElementById('linkIniciarSesion');
+
+    function actualizarLinkLogin(rol) {
+      if (!linkIniciarSesion) return;
+      if (rol === 'estudiante') {
+        linkIniciarSesion.href = 'index.html?rol=estudiante';
+      } else {
+        linkIniciarSesion.href = 'index.html?rol=docente';
+      }
+    }
+
+    roleInputs.forEach(input => {
+      input.addEventListener('change', () => {
+        if (input.value === 'estudiante') {
+          roleEstudiante.className = 'cursor-pointer border-2 border-brand-500 bg-brand-50/70 rounded-2xl p-3.5 text-center transition-all shadow-sm';
+          roleDocente.className = 'cursor-pointer border-2 border-slate-200 bg-white rounded-2xl p-3.5 text-center transition-all hover:border-slate-300';
+          teacherCodeField.classList.add('hidden');
+          groupField.classList.remove('hidden');
+          actualizarLinkLogin('estudiante');
+        } else {
+          roleDocente.className = 'cursor-pointer border-2 border-emerald-500 bg-emerald-50/70 rounded-2xl p-3.5 text-center transition-all shadow-sm';
+          roleEstudiante.className = 'cursor-pointer border-2 border-slate-200 bg-white rounded-2xl p-3.5 text-center transition-all hover:border-slate-300';
+          teacherCodeField.classList.remove('hidden');
+          groupField.classList.add('hidden');
+          actualizarLinkLogin('docente');
+        }
+      });
+    });
+
+    // Form submit handler with API
+    const form = document.getElementById('registerForm');
+    const banner = document.getElementById('messageBanner');
+    const submitBtn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const role = document.querySelector('input[name="role"]:checked').value;
+      const fullName = document.getElementById('fullName').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const groupId = document.getElementById('groupId').value.trim();
+      const docenteCode = document.getElementById('docenteCode')?.value.trim();
+
+      if (!fullName || !phone) {
+        banner.classList.remove('hidden');
+        banner.className = 'mb-6 p-4 rounded-xl text-sm font-medium bg-red-50 text-red-800 border border-red-200';
+        banner.textContent = 'Por favor completa tu Nombre Completo y Número de Celular.';
+        return;
+      }
+
+      if (role === 'docente' && !docenteCode) {
+        banner.classList.remove('hidden');
+        banner.className = 'mb-6 p-4 rounded-xl text-sm font-medium bg-red-50 text-red-800 border border-red-200';
+        banner.textContent = 'Debes ingresar el Código de Autorización Docente obligatorio para continuar.';
+        document.getElementById('docenteCode').focus();
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
+
+      try {
+        const res = await fetch('http://localhost:4000/api/users/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fullName, phone, role, email, password, groupId, docenteCode })
+        });
+
+        const data = await res.json();
+        banner.classList.remove('hidden');
+
+        if (res.ok) {
+          banner.className = 'mb-6 p-4 rounded-xl text-sm font-medium bg-emerald-50 text-emerald-800 border border-emerald-200';
+          const targetLoginUrl = role === 'estudiante' ? 'index.html?rol=estudiante' : 'index.html?rol=docente';
+          banner.innerHTML = `<strong>¡Usuario creado con éxito!</strong><br> • Nombre: <span class="font-semibold text-emerald-950">${data.user.fullName || fullName}</span><br> • Rol: <span class="capitalize font-semibold">${data.user.role}</span><br><div class="mt-3"><a href="${targetLoginUrl}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold transition-all shadow-sm">➔ Ir a Iniciar Sesión como ${role === 'estudiante' ? 'Estudiante' : 'Docente'}</a></div>`;
+          form.reset();
+        } else {
+          banner.className = 'mb-6 p-4 rounded-xl text-sm font-medium bg-red-50 text-red-800 border border-red-200';
+          banner.textContent = data.error || 'Ocurrió un error al registrar el usuario.';
+        }
+      } catch (err) {
+        banner.classList.remove('hidden');
+        banner.className = 'mb-6 p-4 rounded-xl text-sm font-medium bg-red-50 text-red-800 border border-red-200';
+        banner.textContent = 'No se pudo conectar con el servidor (http://localhost:4000). Verifica que el backend esté activo.';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+      }
+    });
+  </script>
+</body>
+
+</html>

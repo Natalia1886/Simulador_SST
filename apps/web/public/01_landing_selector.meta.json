@@ -1,0 +1,25 @@
+{
+  "screenshot": {
+    "name": "projects/11743137579217586199/screens/5ade118d2cfa455aac8f527c1ca31039/fileEntries/screenshot",
+    "downloadUrl": "https://stitch.googleapis.com/v1/projects/11743137579217586199/files/screenshot_00065e3c04a11e0307c4d9ad8004c1b2:download",
+    "mimeType": "image/png"
+  },
+  "htmlCode": {
+    "name": "projects/11743137579217586199/screens/5ade118d2cfa455aac8f527c1ca31039/fileEntries/html",
+    "downloadUrl": "https://stitch.googleapis.com/v1/projects/11743137579217586199/files/5ade118d2cfa455aac8f527c1ca31039:download",
+    "mimeType": "text/html"
+  },
+  "id": "5ade118d2cfa455aac8f527c1ca31039",
+  "generatedBy": "create_datastore_entry",
+  "width": "2560",
+  "height": "2048",
+  "title": "SimulSST Pro - Inicio Interactivo y Selector de Simuladores",
+  "name": "projects/11743137579217586199/screens/5ade118d2cfa455aac8f527c1ca31039",
+  "theme": {},
+  "deviceType": "DESKTOP",
+  "screenType": "DESIGN",
+  "screenMetadata": {
+    "agentType": "PRO_AGENT",
+    "status": "COMPLETE"
+  }
+}
