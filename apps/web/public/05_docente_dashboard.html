@@ -2289,7 +2289,6 @@
 
         // 5. Renderizar Bandeja de Entregas
         if (subs.length > 0) {
-          console.log(`[SimulSST] ${subs.length} entregas reales cargadas de PostgreSQL.`);
           if (container) {
             container.innerHTML = '';
             subs.forEach(sub => {
@@ -2396,7 +2395,6 @@
         }
 
         if (data.students && data.students.length > 0) {
-          console.log(`[SimulSST] ${data.students.length} estudiantes reales obtenidos de PostgreSQL.`);
 
           // 1. Llenar tabla de Visión General / Actividad
           if (tbody) {

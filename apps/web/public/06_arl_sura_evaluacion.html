@@ -2102,12 +2102,27 @@
       }, 3500);
     }
 
+    function obtenerUsuarioSesionArl() {
+      try {
+        const stored = localStorage.getItem('simulsst_user') || localStorage.getItem('user');
+        if (stored) {
+          const u = JSON.parse(stored);
+          return {
+            name: u.fullName || u.name || (u.email ? String(u.email).split('@')[0] : 'Estudiante'),
+            email: (u.email || '').toLowerCase().trim() || 'estudiante@simulsst.edu.co'
+          };
+        }
+      } catch (e) {}
+      return { name: 'Estudiante', email: 'estudiante@simulsst.edu.co' };
+    }
+
     // Descarga real de Certificado en PDF y Registro de Autoevaluación en PostgreSQL
     async function descargarCertificadoSura() {
       cerrarModalResultado();
+      const currentUser = obtenerUsuarioSesionArl();
       const company = document.getElementById('companySelect')?.value?.split(' - ')[0] || 'Metalmecánica Industrial S.A.S.';
       const score = document.getElementById('totalScorePill')?.innerText?.replace('/100', '')?.trim() || '85';
-      const radNumber = `SURA-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}-PHVA`;
+      const radNumber = `SURA-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}-PHVA`;
 
       mostrarToast('Generando Certificado Oficial en PDF y registrando en PostgreSQL...');
 
@@ -2117,8 +2132,8 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            studentName: 'Juan Pérez',
-            studentEmail: 'juan.perez@estudiante.edu',
+            studentName: currentUser.name,
+            studentEmail: currentUser.email,
             module: 'ARL SURA - Autoevaluación Inicial PHVA',
             fileName: `Autoevaluacion_${company.replace(/\s+/g, '_')}.pdf`,
             fileSize: 1845200,
@@ -2132,7 +2147,7 @@
 
       // Descargar PDF real generado por PDFKit
       const params = new URLSearchParams({
-        student: 'Juan Pérez',
+        student: currentUser.name,
         company: company,
         module: 'ARL SURA - Autoevaluación PHVA (Res. 0312)',
         score: score,

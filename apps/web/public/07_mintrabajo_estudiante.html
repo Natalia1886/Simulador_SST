@@ -1233,9 +1233,9 @@
         <div class="card">
           <div class="card-header">
             <div class="card-header-title">
-              <span class="">📋 Expedientes Digitales Radicados</span>
+              <span class="">📂 Expedientes Digitales Radicados</span>
             </div>
-            <span class="badge-pill badge-pill-blue">3 Registros Encontrados</span>
+            <span class="badge-pill badge-pill-blue" id="radicadosCountBadge">0 Registros Encontrados</span>
           </div>
 
           <table class="custom-table">
@@ -1249,44 +1249,10 @@
                 <th class="">Acción</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="radicadosTableBody">
               <tr>
-                <td class=""><strong>RAD-2025-0982-SST</strong></td>
-                <td class="">Vigencia 2025</td>
-                <td class="">20/12/2025 14:32</td>
-                <td class="">Juan Pérez (Lic. 08941)</td>
-                <td class=""><span class="badge-pill badge-pill-green">Aprobado sin observaciones</span></td>
-                <td class="">
-                  <button class="btn btn-outline" style="padding: 4px 10px; font-size: 11px;"
-                    onclick="descargarCertificadoReal('Juan Pérez', 'Empresa Metalmecánica S.A.', 'Plan de Mejoramiento Vigencia 2025', '95', 'RAD-2025-0982-SST')">
-                    📥 Descargar PDF
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td class=""><strong>RAD-2024-1145-SST</strong></td>
-                <td class="">Vigencia 2024</td>
-                <td class="">18/12/2024 09:15</td>
-                <td class="">Juan Pérez (Lic. 08941)</td>
-                <td class=""><span class="badge-pill badge-pill-green">Cerrado con conformidad</span></td>
-                <td class="">
-                  <button class="btn btn-outline" style="padding: 4px 10px; font-size: 11px;"
-                    onclick="descargarCertificadoReal('Juan Pérez', 'Empresa Metalmecánica S.A.', 'Plan de Mejoramiento Vigencia 2024', '90', 'RAD-2024-1145-SST')">
-                    📥 Descargar PDF
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td class=""><strong>RAD-2023-0421-SST</strong></td>
-                <td class="">Vigencia 2023</td>
-                <td class="">15/12/2023 16:50</td>
-                <td class="">Ing. Carlos Méndez (Lic. 05412)</td>
-                <td class=""><span class="badge-pill badge-pill-blue">Histórico Archivado</span></td>
-                <td class="">
-                  <button class="btn btn-outline" style="padding: 4px 10px; font-size: 11px;"
-                    onclick="descargarCertificadoReal('Carlos Méndez', 'Empresa Metalmecánica S.A.', 'Plan de Mejoramiento Vigencia 2023', '85', 'RAD-2023-0421-SST')">
-                    📥 Descargar PDF
-                  </button>
+                <td colspan="6" style="text-align:center; color:#64748b; padding:16px;">
+                  Sin expedientes radicados todavía.
                 </td>
               </tr>
             </tbody>
@@ -1534,7 +1500,7 @@
       const student = sesionUsuarioActual.nombre || 'Estudiante';
       const company = document.getElementById('certEmpresa')?.textContent || 'Empresa Metalmecánica S.A.';
       const score = (evaluacionActual && evaluacionActual.evaluated) ? String(evaluacionActual.score) : '0';
-      const rad = `RAD-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}-SST`;
+      const rad = `RAD-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}-SST`;
 
       descargarCertificadoReal(student, company, 'Autoevaluación de Estándares Mínimos (Res. 0312)', score, rad);
     }
