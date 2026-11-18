@@ -170,8 +170,8 @@
         </button>
 
         <div class="inline-flex items-center gap-2.5 bg-white px-4 py-2 rounded-full border border-slate-200 text-xs shadow-sm self-start sm:self-auto">
-          <div class="w-6 h-6 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center text-[11px]">JS</div>
-          <span class="text-slate-600">Perfil Estudiante: <strong class="text-slate-900 font-semibold">Juan Sebastián Pérez</strong> (Grupo 8A)</span>
+          <div id="student-profile-avatar" class="w-6 h-6 rounded-full bg-brand-100 text-brand-700 font-bold flex items-center justify-center text-[11px]">ES</div>
+          <span class="text-slate-600">Perfil Estudiante: <strong id="student-profile-name" class="text-slate-900 font-semibold">Estudiante</strong> <span id="student-profile-group"></span></span>
         </div>
       </div>
 
@@ -507,6 +507,22 @@
 
     // Auto-abrir modal si la URL incluye parámetro login o rol
     window.addEventListener('DOMContentLoaded', () => {
+      try {
+        const stored = localStorage.getItem('simulsst_user') || localStorage.getItem('user');
+        if (stored) {
+          const u = JSON.parse(stored);
+          const name = u.fullName || u.name || (u.email ? String(u.email).split('@')[0] : 'Estudiante');
+          const group = u.groupId ? `(${u.groupId})` : '';
+          const initials = name.split(' ').filter(Boolean).map(p => p[0]).join('').substring(0, 2).toUpperCase() || 'ES';
+          const avatar = document.getElementById('student-profile-avatar');
+          const nameEl = document.getElementById('student-profile-name');
+          const groupEl = document.getElementById('student-profile-group');
+          if (avatar) avatar.textContent = initials;
+          if (nameEl) nameEl.textContent = name;
+          if (groupEl) groupEl.textContent = group;
+        }
+      } catch (e) {}
+
       const params = new URLSearchParams(window.location.search);
       const rolParam = params.get('rol') || params.get('role');
       const loginParam = params.get('login');
