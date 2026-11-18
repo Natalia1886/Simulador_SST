@@ -14,11 +14,25 @@ const app = express();
 const port = process.env.PORT || 4000;
 
 app.use(helmet());
+
+const allowedOrigins = (process.env.CORS_ORIGINS || 'http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 app.use(cors({
-  origin: true,
-  credentials: true
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Origen no permitido por CORS'));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-teacher-code'],
 }));
-app.use(express.json());
+
+app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
 
 // Verificación de Salud
