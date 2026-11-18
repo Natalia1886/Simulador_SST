@@ -616,6 +616,32 @@ app.post('/api/evaluations/risk-classification', async (req, res) => {
   }
 });
 
+app.use((req, res) => {
+  res.status(404).json({ code: 'NOT_FOUND', message: 'Recurso no encontrado' });
+});
+
+app.use((err: any, req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  if (err?.message === 'Origen no permitido por CORS') {
+    return res.status(403).json({ code: 'CORS_FORBIDDEN', message: 'Origen no permitido' });
+  }
+
+  console.error('Error no controlado en la API:', err);
+  if (res.headersSent) {
+    return;
+  }
+
+  const status = typeof err?.status === 'number' ? err.status : 500;
+  const message = status >= 500 ? 'Error interno del servidor' : (err?.message || 'Solicitud inválida');
+  res.status(status).json({ code: status >= 500 ? 'INTERNAL_ERROR' : 'REQUEST_ERROR', message });
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('Promesa no controlada:', reason);
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('Excepción no controlada:', error);
+});
 
 app.listen(port, () => {
   console.log(`[SimulSST API] Servidor ejecutándose en http://localhost:${port}`);
