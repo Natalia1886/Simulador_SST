@@ -66,9 +66,15 @@ app.post('/api/users/register', async (req, res) => {
     // Validación de Seguridad para Registro de Profesores / Administradores (Código Secreto)
     if (role === 'docente' || role === 'administrador') {
       const teacherVerificationCode = req.body.docenteCode || req.body.teacherCode || req.headers['x-teacher-code'];
-      const expectedTeacherCode = process.env.TEACHER_REGISTRATION_CODE || 'DOCENTE_SST_2026';
+      const expectedTeacherCode = process.env.TEACHER_REGISTRATION_CODE;
 
-      // Si no se suministra o no coincide con la clave secreta en el .env, rechazar con 403
+      if (!expectedTeacherCode) {
+        return res.status(503).json({
+          error: 'Registro de docentes no disponible: falta configuración de autorización institucional.'
+        });
+      }
+
+      // Si no se suministra o no coincide con la clave secreta en el entorno, rechazar con 403
       if (!teacherVerificationCode || String(teacherVerificationCode).trim() !== expectedTeacherCode) {
         return res.status(403).json({
           error: 'Código de Autorización Docente inválido o ausente. Para registrarte como profesor debes suministrar el código secreto institucional.'
