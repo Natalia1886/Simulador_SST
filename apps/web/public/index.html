@@ -4,41 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SimulSST Pro | Plataforma Académica Integrada</title>
-  <!-- Tailwind CSS CDN con fallbacks resilientes -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    if (!window.tailwind) {
-      document.write('<script src="https://cdn.jsdelivr.net/npm/tailwindcss-cdn@3.4.10/tailwindcss.js"><\/script>');
-    }
-  </script>
-  <script>
-    if (!window.tailwind) {
-      document.write('<script src="https://unpkg.com/tailwindcss-cdn@3.4.10/tailwindcss.js"><\/script>');
-    }
-  </script>
-  <script>
-    window.tailwind = window.tailwind || {};
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            brand: {
-              50: '#f0f7ff',
-              100: '#e0effe',
-              200: '#bae0fd',
-              500: '#0070ba', // Azul cian del escudo
-              600: '#004b87', // Azul real corporativo
-              700: '#003366', // Azul marino del casco
-              800: '#002244',
-              900: '#0f172a',
-            },
-            amberAccent: '#f59e0b',
-            emeraldAccent: '#10b981',
-          }
-        }
-      }
-    }
-  </script>
+  <link rel="stylesheet" href="./output.css">
 </head>
 <body class="bg-slate-50 min-h-screen flex flex-col text-slate-800 antialiased selection:bg-brand-500 selection:text-white bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-100/50 via-slate-50 to-slate-100">
 

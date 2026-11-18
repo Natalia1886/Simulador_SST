@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "description": "Frontend estático de SimulSST Pro",
   "scripts": {
+    "build:css": "tailwindcss -i src/input.css -o public/output.css",
+    "watch:css": "tailwindcss -i src/input.css -o public/output.css --watch",
     "dev": "npx --yes serve public -p 3000",
     "start": "npx --yes serve public -p 3000"
   },
