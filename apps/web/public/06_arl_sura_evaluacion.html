@@ -28,10 +28,10 @@
         <div class="company-meta">NIT: 900.824.112-4 • Clase de Riesgo III</div>
       </div>
       <div class="student-badge">
-        <div class="student-avatar">JP</div>
+        <div class="student-avatar" id="topbarUserAvatar">ES</div>
         <div class="student-info">
-          <div class="student-name">Juan Pérez (Estudiante)</div>
-          <div class="student-role">● Rol: Asesor SST en Prácticas</div>
+          <div class="student-name" id="topbarUserName">Estudiante</div>
+          <div class="student-role" id="topbarUserRole">● Rol: Estudiante en Prácticas SST</div>
         </div>
       </div>
       <button type="button" onclick="cerrarSesionSura()" style="display: flex; align-items: center; gap: 6px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; padding: 7px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; text-transform: uppercase;" onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'; this.style.color='#b91c1c';" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'; this.style.color='#ef4444';">
@@ -686,12 +686,12 @@
           <div class="modal-form-grid">
             <div class="form-group">
               <label for="modalActividad">Actividad a Implementar (Acción Correctiva o Preventiva) <span class="required-dot">*</span></label>
-              <textarea id="modalActividad" class="form-control" placeholder="Detalle la medida correctiva para subsanar el hallazgo, fecha límite de cumplimiento y entregables..." required>Actualizar manual de funciones e implementar acta formal de socialización y firma de responsabilidades para el 100% de la planta.</textarea>
+              <textarea id="modalActividad" class="form-control" placeholder="Actualizar manual de funciones e implementar acta formal de socialización y firma de responsabilidades para el 100% de la planta." oninput="this.setCustomValidity('')" required></textarea>
             </div>
 
             <div class="form-group">
               <label for="modalDiligencia">Persona que lo Diligencia (Estudiante / Responsable) <span class="required-dot">*</span></label>
-              <input type="text" id="modalDiligencia" class="form-control" value="Juan Pérez - Estudiante en Prácticas SST" required>
+              <input type="text" id="modalDiligencia" class="form-control" value="" required>
             </div>
 
             <div class="form-group">
@@ -789,8 +789,8 @@
     let activeStdTitle = 'Responsabilidades de los trabajadores en el SG-SST';
     const improvementPlans = {
       '1.1.2': {
-        actividad: 'Actualizar manual de funciones e implementar acta formal de socialización y firma de responsabilidades para el 100% de la planta.',
-        diligencia: 'Juan Pérez - Estudiante en Prácticas SST',
+        actividad: '',
+        diligencia: '',
         responsable: 'Ing. Carlos Mendoza (Gerente de Operaciones)',
         plazo: '30'
       }
@@ -849,14 +849,12 @@
       document.getElementById('modalStandardTitle').innerText = titulo;
 
       // Populate if existing
-      if (improvementPlans[codigo]) {
-        document.getElementById('modalActividad').value = improvementPlans[codigo].actividad;
-        document.getElementById('modalDiligencia').value = improvementPlans[codigo].diligencia;
-        document.getElementById('modalResponsable').value = improvementPlans[codigo].responsable;
-        document.getElementById('modalPlazo').value = improvementPlans[codigo].plazo || '30';
-      } else {
-        document.getElementById('modalActividad').value = 'Definir plan correctivo, asignar recursos y cronograma para subsanar el hallazgo normativo.';
-      }
+      const planGuardado = improvementPlans[codigo];
+      document.getElementById('modalActividad').value = planGuardado?.actividad || '';
+      document.getElementById('modalActividad').setCustomValidity('');
+      document.getElementById('modalDiligencia').value = planGuardado?.diligencia || obtenerDiligenciaPorDefecto();
+      document.getElementById('modalResponsable').value = planGuardado?.responsable || 'Ing. Carlos Mendoza (Gerente de Operaciones)';
+      document.getElementById('modalPlazo').value = planGuardado?.plazo || '30';
 
       document.getElementById('modalPlanMejoramiento').classList.add('open');
     }
@@ -872,9 +870,20 @@
     function confirmarPlanMejoramiento(e) {
       e.preventDefault();
       const codigo = document.getElementById('modalStandardCode').innerText;
+      const actividadInput = document.getElementById('modalActividad');
+      actividadInput.setCustomValidity('');
+      const actividad = actividadInput.value.trim();
+      const caracteresUtiles = actividad.replace(/\s/g, '').length;
+
+      if (caracteresUtiles < 15) {
+        actividadInput.setCustomValidity('Escribe una actividad de al menos 15 caracteres útiles para registrar el plan.');
+        actividadInput.reportValidity();
+        actividadInput.focus();
+        return;
+      }
 
       improvementPlans[codigo] = {
-        actividad: document.getElementById('modalActividad').value,
+        actividad: actividad,
         diligencia: document.getElementById('modalDiligencia').value,
         responsable: document.getElementById('modalResponsable').value,
         plazo: document.getElementById('modalPlazo').value
@@ -980,17 +989,33 @@
     }
 
     function obtenerUsuarioSesionArl() {
-      try {
-        const stored = localStorage.getItem('simulsst_user') || localStorage.getItem('user');
-        if (stored) {
-          const u = JSON.parse(stored);
-          return {
-            name: u.fullName || u.name || (u.email ? String(u.email).split('@')[0] : 'Estudiante'),
-            email: (u.email || '').toLowerCase().trim() || 'estudiante@simulsst.edu.co'
-          };
-        }
-      } catch (e) {}
-      return { name: 'Estudiante', email: 'estudiante@simulsst.edu.co' };
+      const user = window.SimulSST?.getUser?.() || {};
+      return {
+        name: window.SimulSST?.getUserName?.() || 'Estudiante',
+        email: String(user.email || '').toLowerCase().trim() || 'estudiante@simulsst.edu.co'
+      };
+    }
+
+    function obtenerDiligenciaPorDefecto() {
+      const nombre = window.SimulSST?.getUserName?.() || 'Estudiante';
+      const rol = window.SimulSST?.getUserRoleLabel?.() || 'Estudiante en Prácticas SST';
+      return `${nombre} - ${rol}`;
+    }
+
+    function inicializarUsuarioSura() {
+      const nombre = window.SimulSST?.getUserName?.() || 'Estudiante';
+      const rol = window.SimulSST?.getUserRoleLabel?.() || 'Estudiante en Prácticas SST';
+      const topName = document.getElementById('topbarUserName');
+      const topAvatar = document.getElementById('topbarUserAvatar');
+      const topRole = document.getElementById('topbarUserRole');
+      if (topName) topName.textContent = nombre;
+      if (topAvatar) topAvatar.textContent = window.SimulSST?.getUserInitials?.() || 'ES';
+      if (topRole) topRole.textContent = `● Rol: ${rol}`;
+
+      const diligencia = document.getElementById('modalDiligencia');
+      if (diligencia) diligencia.value = obtenerDiligenciaPorDefecto();
+      const actividad = document.getElementById('modalActividad');
+      if (actividad) actividad.value = '';
     }
 
     // Descarga real de Certificado en PDF y Registro de Autoevaluación en PostgreSQL
@@ -1035,6 +1060,7 @@
 
     // Initial setup
     window.addEventListener('DOMContentLoaded', () => {
+      inicializarUsuarioSura();
       actualizarMetricas();
     });
 

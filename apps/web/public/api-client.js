@@ -60,10 +60,56 @@
         return response;
     };
 
+    function decodeTokenUser() {
+        const token = getToken() || localStorage.getItem('token') || sessionStorage.getItem('token') || '';
+        const parts = token.split('.');
+        if (parts.length < 2) return null;
+        try {
+            const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+            const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
+            const bytes = Uint8Array.from(atob(padded), c => c.charCodeAt(0));
+            const payload = JSON.parse(new TextDecoder('utf-8').decode(bytes));
+            return payload && typeof payload === 'object' ? payload : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function getUser() {
+        const stored = localStorage.getItem(USER_KEY) || localStorage.getItem('user') || sessionStorage.getItem(USER_KEY);
+        if (stored) {
+            try {
+                const parsed = JSON.parse(stored);
+                if (parsed && typeof parsed === 'object') return parsed;
+            } catch (e) {}
+        }
+        return decodeTokenUser() || {};
+    }
+
+    function getUserName() {
+        const user = getUser();
+        return user.fullName || user.name || (user.email ? String(user.email).split('@')[0] : 'Estudiante');
+    }
+
+    function getUserRoleLabel() {
+        const role = String(getUser().role || '').toLowerCase();
+        if (['docente', 'profesor', 'teacher', 'professor'].includes(role)) return 'Docente / Auditor SST';
+        if (['mintrabajo', 'arl', 'responsable'].includes(role)) return 'Responsable SG-SST';
+        return 'Estudiante en Prácticas SST';
+    }
+
+    function getUserInitials() {
+        return getUserName().split(/\s+/).filter(Boolean).map(p => p[0]).join('').substring(0, 2).toUpperCase() || 'ES';
+    }
+
     window.SimulSST = {
         API_BASE_URL,
         getToken,
         setSession,
         clearSession,
+        getUser,
+        getUserName,
+        getUserRoleLabel,
+        getUserInitials,
     };
 })();

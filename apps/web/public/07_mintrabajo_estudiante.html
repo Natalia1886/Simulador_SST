@@ -660,19 +660,16 @@
     // Inicializar sesión y datos dinámicos al cargar
     function inicializarSesionUsuario() {
       try {
-        const stored = localStorage.getItem('simulsst_user') || localStorage.getItem('user');
-        if (stored) {
-          const u = JSON.parse(stored);
-          const nombreReal = u.fullName || u.name || (u.email ? u.email.split('@')[0] : 'Estudiante');
-          const emailReal = (u.email || 'estudiante@simulsst.edu.co').toLowerCase().trim();
-          sesionUsuarioActual = {
-            nombre: nombreReal,
-            email: emailReal,
-            role: u.role || 'estudiante'
-          };
-        }
+        const u = window.SimulSST?.getUser?.() || {};
+        const nombreReal = window.SimulSST?.getUserName?.() || 'Estudiante';
+        const emailReal = String(u.email || 'estudiante@simulsst.edu.co').toLowerCase().trim();
+        sesionUsuarioActual = {
+          nombre: nombreReal,
+          email: emailReal,
+          role: u.role || 'estudiante'
+        };
       } catch (e) {
-        console.warn('Error leyendo simulsst_user de localStorage:', e);
+        console.warn('Error leyendo la sesión de SimulSST:', e);
       }
 
       // 1. Actualizar perfil superior con datos reales
@@ -684,7 +681,7 @@
 
       const topAvatar = document.getElementById('topbarUserAvatar');
       if (topAvatar) {
-        const initials = sesionUsuarioActual.nombre.split(' ').map(p => p[0]).join('').substring(0, 2).toUpperCase() || 'ES';
+        const initials = window.SimulSST?.getUserInitials?.() || 'ES';
         topAvatar.textContent = initials;
       }
 

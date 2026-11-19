@@ -490,19 +490,16 @@
     // Auto-abrir modal si la URL incluye parámetro login o rol
     window.addEventListener('DOMContentLoaded', () => {
       try {
-        const stored = localStorage.getItem('simulsst_user') || localStorage.getItem('user');
-        if (stored) {
-          const u = JSON.parse(stored);
-          const name = u.fullName || u.name || (u.email ? String(u.email).split('@')[0] : 'Estudiante');
-          const group = u.groupId ? `(${u.groupId})` : '';
-          const initials = name.split(' ').filter(Boolean).map(p => p[0]).join('').substring(0, 2).toUpperCase() || 'ES';
-          const avatar = document.getElementById('student-profile-avatar');
-          const nameEl = document.getElementById('student-profile-name');
-          const groupEl = document.getElementById('student-profile-group');
-          if (avatar) avatar.textContent = initials;
-          if (nameEl) nameEl.textContent = name;
-          if (groupEl) groupEl.textContent = group;
-        }
+        const u = window.SimulSST?.getUser?.() || {};
+        const name = window.SimulSST?.getUserName?.() || 'Estudiante';
+        const group = u.groupId ? `(${u.groupId})` : '';
+        const initials = window.SimulSST?.getUserInitials?.() || 'ES';
+        const avatar = document.getElementById('student-profile-avatar');
+        const nameEl = document.getElementById('student-profile-name');
+        const groupEl = document.getElementById('student-profile-group');
+        if (avatar) avatar.textContent = initials;
+        if (nameEl) nameEl.textContent = name;
+        if (groupEl) groupEl.textContent = group;
       } catch (e) {}
 
       const params = new URLSearchParams(window.location.search);
