@@ -1,18 +1,43 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
-import { db, checkDatabaseConnection } from './db';
-import { users } from './db/schema';
-import { eq } from 'drizzle-orm';
+import jwt from 'jsonwebtoken';
+import rateLimit from 'express-rate-limit';
+import { z } from 'zod';
 import bcrypt from 'bcryptjs';
+import PDFDocument from 'pdfkit';
+import { desc, eq } from 'drizzle-orm';
+import { db, pool, checkDatabaseConnection } from './db';
+import { users, assignmentCriteria, studentSubmissions, eventLogs } from './db/schema';
 
 dotenv.config();
+
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET || JWT_SECRET.trim().length < 16) {
+  throw new Error('JWT_SECRET debe estar definido en las variables de entorno con al menos 16 caracteres.');
+}
+
+interface AuthPayload {
+  id: string;
+  email: string;
+  role: 'estudiante' | 'docente' | 'administrador';
+  fullName?: string | null;
+}
+
+declare global {
+  namespace Express {
+    interface Request {
+      user?: AuthPayload;
+    }
+  }
+}
 
 const app = express();
 const port = process.env.PORT || 4000;
 
+app.set('trust proxy', 1);
 app.use(helmet());
 
 const allowedOrigins = (process.env.CORS_ORIGINS || 'http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173')
@@ -35,8 +60,97 @@ app.use(cors({
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
 
-// Verificación de Salud
-app.get('/health', async (req, res) => {
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 15,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { code: 'RATE_LIMITED', error: 'Demasiados intentos. Intenta nuevamente en 15 minutos.' },
+});
+
+function signToken(payload: AuthPayload): string {
+  return jwt.sign(payload, JWT_SECRET as string, { expiresIn: '8h' });
+}
+
+function requireAuth(req: Request, res: Response, next: NextFunction) {
+  const authHeader = req.headers.authorization;
+  const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7).trim() : null;
+  const cookieToken = req.cookies?.simulsst_token;
+  const token = bearerToken || cookieToken;
+
+  if (!token) {
+    return res.status(401).json({ code: 'UNAUTHORIZED', error: 'Sesión no iniciada o token ausente.' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET as string) as AuthPayload;
+    req.user = decoded;
+    return next();
+  } catch {
+    return res.status(401).json({ code: 'INVALID_TOKEN', error: 'Sesión expirada o token inválido.' });
+  }
+}
+
+function requireRole(...roles: Array<AuthPayload['role']>) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({ code: 'UNAUTHORIZED', error: 'Autenticación requerida.' });
+    }
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ code: 'FORBIDDEN', error: 'No tienes permisos para acceder a este recurso.' });
+    }
+    return next();
+  };
+}
+
+// Esquemas Zod de validación
+const registerSchema = z.object({
+  fullName: z.string().trim().min(3, 'El nombre completo debe tener al menos 3 caracteres.').max(120),
+  phone: z.string().trim().min(7, 'Número de celular inválido.').max(25),
+  email: z.string().trim().email('Correo electrónico inválido.').max(160),
+  password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres.').max(100),
+  role: z.enum(['estudiante', 'docente', 'administrador']),
+  groupId: z.string().trim().max(80).optional().nullable(),
+  docenteCode: z.string().optional(),
+  teacherCode: z.string().optional(),
+});
+
+const loginSchema = z.object({
+  email: z.string().trim().email('Correo electrónico inválido.'),
+  password: z.string().min(1, 'Debes proporcionar la contraseña.'),
+});
+
+const criteriaSchema = z.object({
+  companyName: z.string().trim().min(2, 'Debe especificar el nombre de la empresa.').max(160),
+  sector: z.string().trim().min(2, 'Debe especificar el sector.').max(120),
+  riskLevel: z.string().trim().max(80).optional(),
+  timeLimitMinutes: z.coerce.number().int().min(5).max(240).optional(),
+  description: z.string().trim().max(2000).optional(),
+  expectedPhva: z.record(z.string(), z.array(z.string())).optional(),
+});
+
+const submissionSchema = z.object({
+  studentName: z.string().trim().max(120).optional(),
+  studentEmail: z.string().trim().email().optional(),
+  module: z.string().trim().max(160).optional(),
+  fileName: z.string().trim().max(200).optional(),
+  fileSize: z.coerce.number().int().min(0).max(50_000_000).optional(),
+  textContent: z.string().max(100_000).optional(),
+  phvaPhase: z.enum(['Planear', 'Hacer', 'Verificar', 'Actuar']).optional(),
+});
+
+const riskClassificationSchema = z.object({
+  studentEmail: z.string().trim().email().optional(),
+  studentName: z.string().trim().max(120).optional(),
+  companyName: z.string().trim().max(160).optional(),
+  riskClass: z.string().trim().min(2, 'Debes seleccionar una clase de riesgo válida.').max(80),
+  rationale: z.string().trim().max(1000).optional(),
+  period: z.string().trim().max(20).optional(),
+  score: z.coerce.number().min(0).max(100).optional().nullable(),
+});
+
+// Verificación de Salud (Pública)
+app.get('/health', async (_req, res) => {
   const dbOk = await checkDatabaseConnection();
   res.json({
     status: dbOk ? 'ok' : 'degraded',
@@ -45,11 +159,12 @@ app.get('/health', async (req, res) => {
   });
 });
 
-// Listar usuarios (para docentes y verificación)
-app.get('/api/users', async (req, res) => {
+// Listar usuarios (Solo Docentes / Administradores)
+app.get('/api/users', requireAuth, requireRole('docente', 'administrador'), async (_req, res) => {
   try {
     const allUsers = await db.select({
       id: users.id,
+      fullName: users.fullName,
       email: users.email,
       role: users.role,
       groupId: users.groupId,
@@ -65,21 +180,17 @@ app.get('/api/users', async (req, res) => {
 });
 
 // Registro / Creación de Usuario
-app.post('/api/users/register', async (req, res) => {
+app.post('/api/users/register', authLimiter, async (req, res) => {
   try {
-    const { fullName, phone, email, password, role, groupId } = req.body;
-
-    if (!fullName || !phone || !email || !password || !role) {
-      return res.status(400).json({ error: 'Todos los campos obligatorios deben ser proporcionados: Nombre Completo, Número de Celular, Correo, Contraseña y Rol.' });
+    const parsed = registerSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.issues[0]?.message || 'Datos de registro inválidos.' });
     }
 
-    if (!['estudiante', 'docente', 'administrador'].includes(role)) {
-      return res.status(400).json({ error: 'Rol inválido. Debe ser estudiante o docente.' });
-    }
+    const { fullName, phone, email, password, role, groupId, docenteCode, teacherCode } = parsed.data;
 
-    // Validación de Seguridad para Registro de Profesores / Administradores (Código Secreto)
     if (role === 'docente' || role === 'administrador') {
-      const teacherVerificationCode = req.body.docenteCode || req.body.teacherCode || req.headers['x-teacher-code'];
+      const providedCode = docenteCode || teacherCode || req.headers['x-teacher-code'];
       const expectedTeacherCode = process.env.TEACHER_REGISTRATION_CODE;
 
       if (!expectedTeacherCode) {
@@ -88,31 +199,29 @@ app.post('/api/users/register', async (req, res) => {
         });
       }
 
-      // Si no se suministra o no coincide con la clave secreta en el entorno, rechazar con 403
-      if (!teacherVerificationCode || String(teacherVerificationCode).trim() !== expectedTeacherCode) {
+      if (!providedCode || String(providedCode).trim() !== expectedTeacherCode) {
         return res.status(403).json({
-          error: 'Código de Autorización Docente inválido o ausente. Para registrarte como profesor debes suministrar el código secreto institucional.'
+          error: 'Código de Autorización Docente inválido o ausente.'
         });
       }
     }
 
-    // Verificar si ya existe
-    const existing = await db.select().from(users).where(eq(users.email, email.toLowerCase().trim())).limit(1);
+    const normalizedEmail = email.toLowerCase().trim();
+    const existing = await db.select().from(users).where(eq(users.email, normalizedEmail)).limit(1);
     if (existing.length > 0) {
       return res.status(409).json({ error: 'El correo electrónico ya está registrado en el simulador.' });
     }
 
-    // Hash de la contraseña con bcrypt
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
     const [newUser] = await db.insert(users).values({
-      fullName: String(fullName).trim(),
-      phone: String(phone).trim(),
-      email: email.toLowerCase().trim(),
+      fullName,
+      phone,
+      email: normalizedEmail,
       passwordHash,
       role,
-      groupId: groupId ? String(groupId).trim() : null,
+      groupId: groupId || null,
       mustChangePassword: false,
       active: true
     }).returning({
@@ -126,8 +235,16 @@ app.post('/api/users/register', async (req, res) => {
       createdAt: users.createdAt
     });
 
+    const token = signToken({
+      id: newUser.id,
+      email: newUser.email,
+      role: newUser.role as AuthPayload['role'],
+      fullName: newUser.fullName
+    });
+
     res.status(201).json({
       message: 'Usuario registrado exitosamente',
+      token,
       user: newUser
     });
   } catch (error) {
@@ -137,22 +254,22 @@ app.post('/api/users/register', async (req, res) => {
 });
 
 // Inicio de Sesión / Autenticación de Usuario
-app.post('/api/users/login', async (req, res) => {
+app.post('/api/users/login', authLimiter, async (req, res) => {
   try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Debes proporcionar correo electrónico y contraseña.' });
+    const parsed = loginSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.issues[0]?.message || 'Credenciales inválidas.' });
     }
 
-    // Buscar usuario por correo
-    const [user] = await db.select().from(users).where(eq(users.email, email.toLowerCase().trim())).limit(1);
+    const { email, password } = parsed.data;
+    const normalizedEmail = email.toLowerCase().trim();
+
+    const [user] = await db.select().from(users).where(eq(users.email, normalizedEmail)).limit(1);
 
     if (!user) {
       return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
     }
 
-    // Validar contraseña con bcryptjs
     const isValid = await bcrypt.compare(password, user.passwordHash);
     if (!isValid) {
       return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
@@ -162,10 +279,19 @@ app.post('/api/users/login', async (req, res) => {
       return res.status(403).json({ error: 'Usuario inactivo. Contacta a tu docente o administrador.' });
     }
 
+    const token = signToken({
+      id: user.id,
+      email: user.email,
+      role: user.role as AuthPayload['role'],
+      fullName: user.fullName
+    });
+
     res.json({
       message: 'Inicio de sesión exitoso',
+      token,
       user: {
         id: user.id,
+        fullName: user.fullName,
         email: user.email,
         role: user.role,
         groupId: user.groupId,
@@ -181,17 +307,13 @@ app.post('/api/users/login', async (req, res) => {
 // ==============================================================
 // 1. DESCARGA REAL DE CERTIFICADOS Y REPORTES EN PDF (PDFKit)
 // ==============================================================
-import PDFDocument from 'pdfkit';
-import { assignmentCriteria, studentSubmissions, eventLogs } from './db/schema';
-import { desc } from 'drizzle-orm';
-
 app.get('/api/reports/certificate/pdf', (req, res) => {
   try {
-    const studentName = String(req.query.student || 'Juan Pérez');
-    const company = String(req.query.company || 'Metalmecánica Industrial S.A.S.');
-    const moduleType = String(req.query.module || 'Autoevaluación de Estándares Mínimos (Res. 0312)');
-    const score = String(req.query.score || '88');
-    const radNumber = String(req.query.rad || `RAD-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}-SST`);
+    const studentName = String(req.query.student || 'Estudiante SST').slice(0, 120);
+    const company = String(req.query.company || 'Metalmecánica Industrial S.A.S.').slice(0, 140);
+    const moduleType = String(req.query.module || 'Autoevaluación de Estándares Mínimos (Res. 0312)').slice(0, 140);
+    const numericScore = Math.min(100, Math.max(0, Number(req.query.score) || 88));
+    const radNumber = String(req.query.rad || `RAD-${new Date().getFullYear()}-${Date.now().toString().slice(-4)}-SST`).replace(/[^a-zA-Z0-9-_]/g, '');
 
     const doc = new PDFDocument({ margin: 45, size: 'A4' });
 
@@ -200,11 +322,9 @@ app.get('/api/reports/certificate/pdf', (req, res) => {
 
     doc.pipe(res);
 
-    // Borde decorativo
     doc.rect(20, 20, 555, 802).lineWidth(2).strokeColor('#003366').stroke();
     doc.rect(24, 24, 547, 794).lineWidth(0.5).strokeColor('#0070ba').stroke();
 
-    // Encabezado Institucional
     doc.fillColor('#003366').fontSize(22).font('Helvetica-Bold').text('SIMULSST PRO', { align: 'center' });
     doc.fillColor('#0070ba').fontSize(11).font('Helvetica-Bold').text('SISTEMA DE GESTIÓN EN SEGURIDAD Y SALUD EN EL TRABAJO', { align: 'center' });
     doc.fillColor('#64748b').fontSize(9).font('Helvetica').text('Ambiente Académico Calificado • Resolución 0312 de 2019 / Decreto 1072 de 2015', { align: 'center' });
@@ -213,13 +333,11 @@ app.get('/api/reports/certificate/pdf', (req, res) => {
     doc.strokeColor('#e2e8f0').lineWidth(1).moveTo(45, doc.y).lineTo(550, doc.y).stroke();
     doc.moveDown(1.5);
 
-    // Título Principal
     doc.fillColor('#0f172a').fontSize(16).font('Helvetica-Bold').text('CERTIFICADO OFICIAL DE EVALUACIÓN TÉCNICA', { align: 'center' });
     doc.fillColor('#059669').fontSize(10).font('Helvetica-Bold').text(`Radicado Ministerial / Aseguradora: ${radNumber}`, { align: 'center' });
 
     doc.moveDown(2);
 
-    // Cuerpo del Certificado
     doc.fillColor('#334155').fontSize(11).font('Helvetica').text(
       `Por medio del presente documento se certifica que el estudiante y asesor técnico en formación en Seguridad y Salud en el Trabajo:`,
       { align: 'justify' }
@@ -236,7 +354,6 @@ app.get('/api/reports/certificate/pdf', (req, res) => {
 
     doc.moveDown(1);
 
-    // Caja de Resumen Técnico
     const boxY = doc.y;
     doc.rect(45, boxY, 505, 115).fillAndStroke('#f8fafc', '#cbd5e1');
 
@@ -244,7 +361,7 @@ app.get('/api/reports/certificate/pdf', (req, res) => {
     doc.font('Helvetica').fillColor('#334155');
     doc.text(`• Organización Evaluada: ${company}`, 55, boxY + 30);
     doc.text(`• Módulo Operativo: ${moduleType}`, 55, boxY + 45);
-    doc.text(`• Calificación Técnica Obtenida: ${score} / 100 Puntos Calificables`, 55, boxY + 60);
+    doc.text(`• Calificación Técnica Obtenida: ${numericScore} / 100 Puntos Calificables`, 55, boxY + 60);
     doc.text(`• Valoración Normativa: CUMPLIMIENTO LEGAL VERIFICADO CONFORME A LA RÚBRICA`, 55, boxY + 75);
     doc.text(`• Fecha y Hora de Expedición: ${new Date().toLocaleString('es-CO')}`, 55, boxY + 90);
 
@@ -257,13 +374,12 @@ app.get('/api/reports/certificate/pdf', (req, res) => {
 
     doc.moveDown(4);
 
-    // Firmas
     const signaturesY = doc.y;
     doc.strokeColor('#94a3b8').lineWidth(1).moveTo(65, signaturesY).lineTo(240, signaturesY).stroke();
     doc.strokeColor('#94a3b8').lineWidth(1).moveTo(350, signaturesY).lineTo(525, signaturesY).stroke();
 
-    doc.fillColor('#0f172a').fontSize(10).font('Helvetica-Bold').text('Dra. Patricia Gómez', 65, signaturesY + 6, { width: 175, align: 'center' });
-    doc.font('Helvetica').fontSize(8).fillColor('#64748b').text('Docente Titular Cátedra SST\nLicencia Profesional Vigente', 65, signaturesY + 18, { width: 175, align: 'center' });
+    doc.fillColor('#0f172a').fontSize(10).font('Helvetica-Bold').text('Docente Titular Cátedra SST', 65, signaturesY + 6, { width: 175, align: 'center' });
+    doc.font('Helvetica').fontSize(8).fillColor('#64748b').text('Dirección Académica SST\nLicencia Profesional Vigente', 65, signaturesY + 18, { width: 175, align: 'center' });
 
     doc.fillColor('#0f172a').fontSize(10).font('Helvetica-Bold').text('Ministerio del Trabajo / ARL', 350, signaturesY + 6, { width: 175, align: 'center' });
     doc.font('Helvetica').fontSize(8).fillColor('#64748b').text('Auditoría y Conciliación SG-SST\nFirma Digital Verificada', 350, signaturesY + 18, { width: 175, align: 'center' });
@@ -279,14 +395,15 @@ app.get('/api/reports/certificate/pdf', (req, res) => {
 // 2. MOTOR DE COMPARACIÓN DE DOCUMENTOS (DOCENTE VS ESTUDIANTE)
 // ==============================================================
 
-// Endpoint para que el docente asigne o actualice los criterios PHVA de simulación
-app.post('/api/cases/criteria', async (req, res) => {
+// Solo Docentes / Administradores pueden crear criterios de evaluación
+app.post('/api/cases/criteria', requireAuth, requireRole('docente', 'administrador'), async (req, res) => {
   try {
-    const { companyName, sector, riskLevel, timeLimitMinutes, description, expectedPhva } = req.body;
-
-    if (!companyName || !sector) {
-      return res.status(400).json({ error: 'Debe especificar el nombre de empresa y sector.' });
+    const parsed = criteriaSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.issues[0]?.message || 'Datos de criterios inválidos.' });
     }
+
+    const { companyName, sector, riskLevel, timeLimitMinutes, description, expectedPhva } = parsed.data;
 
     const defaultPhva = expectedPhva || {
       Planear: ['política', 'plan de trabajo', 'matriz de riesgos', 'recursos'],
@@ -297,9 +414,9 @@ app.post('/api/cases/criteria', async (req, res) => {
 
     const [newCriteria] = await db.insert(assignmentCriteria).values({
       companyName,
-      sector: sector || 'Manufactura y Metalmecánica',
+      sector,
       riskLevel: riskLevel || 'Clase V (Riesgo Máximo)',
-      timeLimitMinutes: Number(timeLimitMinutes) || 30,
+      timeLimitMinutes: timeLimitMinutes || 30,
       description: description || 'Caso de autoevaluación general de estándares mínimos.',
       expectedPhva: defaultPhva,
       active: true
@@ -315,8 +432,8 @@ app.post('/api/cases/criteria', async (req, res) => {
   }
 });
 
-// Endpoint para consultar criterios activos
-app.get('/api/cases/criteria', async (req, res) => {
+// Criterios activos (usuarios autenticados)
+app.get('/api/cases/criteria', requireAuth, async (_req, res) => {
   try {
     const list = await db.select().from(assignmentCriteria).orderBy(desc(assignmentCriteria.createdAt)).limit(10);
     res.json({ criteria: list });
@@ -326,18 +443,23 @@ app.get('/api/cases/criteria', async (req, res) => {
   }
 });
 
-// Endpoint para que el estudiante suba su entregable, sea procesado y comparado contra el docente
-app.post('/api/submissions/upload', async (req, res) => {
+// Entrega de estudiante (vinculada al usuario autenticado)
+app.post('/api/submissions/upload', requireAuth, async (req, res) => {
   try {
-    const { studentName, studentEmail, module, fileName, fileSize, textContent, phvaPhase } = req.body;
+    const parsed = submissionSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.issues[0]?.message || 'Datos de entrega inválidos.' });
+    }
 
-    const sName = studentName || 'Estudiante SimulSST';
-    const sEmail = studentEmail || 'estudiante@universidad.edu.co';
+    const { studentName, studentEmail, module, fileName, fileSize, textContent, phvaPhase } = parsed.data;
+    const isStaff = req.user!.role === 'docente' || req.user!.role === 'administrador';
+
+    const sEmail = isStaff && studentEmail ? studentEmail.toLowerCase().trim() : req.user!.email;
+    const sName = (isStaff && studentName ? studentName : req.user!.fullName) || sEmail.split('@')[0];
     const sModule = module || 'ARL SURA - Evaluación PHVA';
     const fName = fileName || 'Entregable_SST.pdf';
     const phase = phvaPhase || 'Planear';
 
-    // Obtener los criterios del docente más recientes en PostgreSQL
     const [activeCase] = await db.select().from(assignmentCriteria).where(eq(assignmentCriteria.active, true)).orderBy(desc(assignmentCriteria.createdAt)).limit(1);
 
     const docRules = (activeCase?.expectedPhva as Record<string, string[]>) || {
@@ -347,15 +469,13 @@ app.post('/api/submissions/upload', async (req, res) => {
       Actuar: ['plan de mejoramiento', 'acciones correctivas', 'preventivas']
     };
 
-    // MOTOR DE COMPARACIÓN:
-    // Analiza las palabras clave y parámetros esperados del docente contra el contenido del archivo
     const expectedKeywords = docRules[phase] || docRules['Planear'] || ['sst', 'seguridad', 'cumplimiento'];
-    const contentToSearch = (textContent || fName + ' plan anual matriz sst copasst política objetivos').toLowerCase();
+    const contentToSearch = (textContent || `${fName} plan anual matriz sst copasst política objetivos`).toLowerCase();
 
     const matches: string[] = [];
     const missing: string[] = [];
 
-    expectedKeywords.forEach(kw => {
+    expectedKeywords.forEach((kw) => {
       if (contentToSearch.includes(kw.toLowerCase())) {
         matches.push(kw);
       } else {
@@ -369,13 +489,12 @@ app.post('/api/submissions/upload', async (req, res) => {
 
     const autoFeedback = `Evaluación automática del sistema (Res. 0312): El entregable coincide con ${matches.length} de ${expectedKeywords.length} criterios esperados por la cátedra para la fase [${phase}]. ${missing.length > 0 ? 'Faltó profundizar en: ' + missing.join(', ') : 'Cumplimiento integral verificado con éxito.'}`;
 
-    // Guardar resultado de la comparación en PostgreSQL
     const [submission] = await db.insert(studentSubmissions).values({
       studentName: sName,
       studentEmail: sEmail,
       module: sModule,
       fileName: fName,
-      fileSize: Number(fileSize) || 1024,
+      fileSize: fileSize ?? 1024,
       phvaPhase: phase,
       score: calculatedScore,
       status: evaluationStatus,
@@ -397,23 +516,24 @@ app.post('/api/submissions/upload', async (req, res) => {
   }
 });
 
-// Endpoint para listar entregas evaluadas (visible en Dashboard de Docente y Estudiante)
-app.get('/api/submissions', async (req, res) => {
+// Listar entregas (Anti-IDOR: estudiante solo ve las suyas; docente ve todas o filtra por email)
+app.get('/api/submissions', requireAuth, async (req, res) => {
   try {
-    const studentEmail = req.query.studentEmail ? String(req.query.studentEmail).toLowerCase().trim() : null;
-    let list;
-    if (studentEmail) {
-      list = await db.select()
+    const isStaff = req.user!.role === 'docente' || req.user!.role === 'administrador';
+    const requestedEmail = req.query.studentEmail ? String(req.query.studentEmail).toLowerCase().trim() : null;
+    const targetEmail = isStaff ? requestedEmail : req.user!.email;
+
+    const list = targetEmail
+      ? await db.select()
         .from(studentSubmissions)
-        .where(eq(studentSubmissions.studentEmail, studentEmail))
+        .where(eq(studentSubmissions.studentEmail, targetEmail))
+        .orderBy(desc(studentSubmissions.submittedAt))
+        .limit(50)
+      : await db.select()
+        .from(studentSubmissions)
         .orderBy(desc(studentSubmissions.submittedAt))
         .limit(50);
-    } else {
-      list = await db.select()
-        .from(studentSubmissions)
-        .orderBy(desc(studentSubmissions.submittedAt))
-        .limit(50);
-    }
+
     res.json({ submissions: list });
   } catch (error) {
     console.error('Error al listar entregas:', error);
@@ -421,25 +541,21 @@ app.get('/api/submissions', async (req, res) => {
   }
 });
 
-// Endpoint para consultar la evaluación consolidada del estudiante en PostgreSQL
-app.get('/api/evaluations/summary', async (req, res) => {
+// Resumen consolidado de evaluación (Anti-IDOR)
+app.get('/api/evaluations/summary', requireAuth, async (req, res) => {
   try {
-    const email = req.query.email ? String(req.query.email).toLowerCase().trim() : null;
-    if (!email) {
-      return res.status(400).json({ error: 'Parámetro email es requerido' });
-    }
+    const isStaff = req.user!.role === 'docente' || req.user!.role === 'administrador';
+    const requestedEmail = req.query.email ? String(req.query.email).toLowerCase().trim() : null;
+    const email = isStaff && requestedEmail ? requestedEmail : req.user!.email;
 
-    // Consultar usuario en base de datos
     const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
 
-    // Consultar entregas del estudiante ordenadas por fecha reciente
     const submissions = await db.select()
       .from(studentSubmissions)
       .where(eq(studentSubmissions.studentEmail, email))
       .orderBy(desc(studentSubmissions.submittedAt));
 
-    // Buscar si completó autoevaluación o clasificación de estándares
-    const evalSubmissions = submissions.filter(s =>
+    const evalSubmissions = submissions.filter((s) =>
       s.module.includes('MinTrabajo') ||
       s.module.includes('Riesgo') ||
       s.module.includes('Estándares') ||
@@ -461,14 +577,9 @@ app.get('/api/evaluations/summary', async (req, res) => {
       });
     }
 
-    // Tomar la entrega más reciente del módulo
     const latest = evalSubmissions[0];
     const score = Number(latest.score) || 0;
 
-    // Calcular valoración normativa según Resolución 0312 de 2019:
-    // < 60%: Crítico
-    // 60% a 85%: Moderadamente Aceptable
-    // > 85%: Aceptable
     let valoracion = 'Crítico';
     let legalStatus = 'Crítico';
     if (score > 85) {
@@ -477,9 +588,6 @@ app.get('/api/evaluations/summary', async (req, res) => {
     } else if (score >= 60) {
       valoracion = 'Moderadamente Aceptable';
       legalStatus = 'Moderadamente Aceptable';
-    } else {
-      valoracion = 'Crítico';
-      legalStatus = 'Crítico';
     }
 
     res.json({
@@ -501,8 +609,8 @@ app.get('/api/evaluations/summary', async (req, res) => {
   }
 });
 
-// Endpoint para listar estudiantes reales de PostgreSQL para el panel docente
-app.get('/api/students', async (req, res) => {
+// Listar estudiantes (Solo Docentes / Administradores)
+app.get('/api/students', requireAuth, requireRole('docente', 'administrador'), async (_req, res) => {
   try {
     const studentList = await db
       .select({
@@ -519,11 +627,10 @@ app.get('/api/students', async (req, res) => {
       .where(eq(users.role, 'estudiante'))
       .orderBy(desc(users.createdAt));
 
-    const submissionsList = await db.select().from(studentSubmissions);
+    const submissionsList = await db.select().from(studentSubmissions).orderBy(desc(studentSubmissions.submittedAt));
 
-    const enrichedStudents = studentList.map(st => {
-      // Buscar si el estudiante tiene alguna entrega registrada
-      const studentSub = submissionsList.find(s => s.studentEmail.toLowerCase() === st.email.toLowerCase());
+    const enrichedStudents = studentList.map((st) => {
+      const studentSub = submissionsList.find((s) => s.studentEmail.toLowerCase() === st.email.toLowerCase());
 
       return {
         id: st.id,
@@ -546,64 +653,68 @@ app.get('/api/students', async (req, res) => {
   }
 });
 
-// Endpoint para guardar la clasificación de riesgo interactiva del estudiante
-app.post('/api/evaluations/risk-classification', async (req, res) => {
+// Clasificación de riesgo interactiva (Transacción atómica + vinculada a usuario autenticado)
+app.post('/api/evaluations/risk-classification', requireAuth, async (req, res) => {
   try {
-    const { studentEmail, studentName, companyName, riskClass, rationale, period, score: customScore } = req.body;
-
-    if (!riskClass) {
-      return res.status(400).json({ error: 'Debes seleccionar una clase de riesgo válida.' });
+    const parsed = riskClassificationSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.issues[0]?.message || 'Datos de clasificación inválidos.' });
     }
 
-    const sEmail = (studentEmail || 'estudiante@simulsst.edu.co').toLowerCase().trim();
-    let sName = studentName;
+    const { studentEmail, studentName, companyName, riskClass, rationale, period, score: customScore } = parsed.data;
+    const isStaff = req.user!.role === 'docente' || req.user!.role === 'administrador';
+
+    const sEmail = isStaff && studentEmail ? studentEmail.toLowerCase().trim() : req.user!.email;
+    let sName = (isStaff && studentName ? studentName : req.user!.fullName) || undefined;
 
     if (!sName) {
       const [u] = await db.select().from(users).where(eq(users.email, sEmail)).limit(1);
       sName = u?.fullName || sEmail.split('@')[0];
     }
 
-    // Calcular puntaje
-    const calculatedScore = customScore !== undefined && customScore !== null 
-      ? Number(customScore) 
+    const calculatedScore = customScore !== undefined && customScore !== null
+      ? Number(customScore)
       : (riskClass.includes('IV') ? 92.5 : 70);
 
-    // Registrar en logs de eventos y registrar la autoevaluación
-    const [event] = await db.insert(eventLogs).values({
-      type: 'answer_change',
-      route: '/seccion-calificacion/riesgo',
-      payloadJson: {
-        studentEmail: sEmail,
-        studentName: sName,
-        companyName: companyName || 'Empresa Metalmecánica S.A.',
-        riskClass,
-        rationale: rationale || 'Clasificación de riesgo asignada por el estudiante',
-        period: period || '2025',
-        score: calculatedScore,
-        timestamp: new Date().toISOString()
-      }
-    }).returning();
+    const { event, submission } = await db.transaction(async (tx) => {
+      const [createdEvent] = await tx.insert(eventLogs).values({
+        userId: req.user!.id,
+        type: 'answer_change',
+        route: '/seccion-calificacion/riesgo',
+        payloadJson: {
+          studentEmail: sEmail,
+          studentName: sName,
+          companyName: companyName || 'Empresa Metalmecánica S.A.',
+          riskClass,
+          rationale: rationale || 'Clasificación de riesgo asignada por el estudiante',
+          period: period || '2025',
+          score: calculatedScore,
+          timestamp: new Date().toISOString()
+        }
+      }).returning();
 
-    // Además registrar como submission de clasificación para trazabilidad docente
-    const [submission] = await db.insert(studentSubmissions).values({
-      studentName: sName,
-      studentEmail: sEmail,
-      module: 'MinTrabajo - Calificación Estándares Mínimos (Res. 0312)',
-      fileName: `Evaluacion_Estandares_${riskClass.replace(/\s+/g, '_')}.json`,
-      fileSize: 512,
-      phvaPhase: 'Planear',
-      score: Math.round(calculatedScore), // almacena entero en postgres
-      status: calculatedScore >= 85 ? 'Aprobado' : (calculatedScore >= 60 ? 'Moderado' : 'Crítico'),
-      criteriaMatches: {
-        selectedRisk: riskClass,
-        expectedRisk: 'Clase IV (Riesgo Alto)',
-        isCorrect: riskClass.includes('IV'),
-        exactScore: calculatedScore
-      },
-      feedback: riskClass.includes('IV') 
-        ? '¡Excelente! Clasificación de Riesgo IV acertada para industria metalmecánica (Dec. 768/2022). Aplican 60 estándares mínimos.'
-        : `Clasificación ${riskClass} registrada. Nota: La actividad metalmecánica con tratamiento de metales corresponde prioritariamente a Clase IV según Dec. 768/2022.`
-    }).returning();
+      const [createdSubmission] = await tx.insert(studentSubmissions).values({
+        studentName: sName!,
+        studentEmail: sEmail,
+        module: 'MinTrabajo - Calificación Estándares Mínimos (Res. 0312)',
+        fileName: `Evaluacion_Estandares_${riskClass.replace(/\s+/g, '_')}.json`,
+        fileSize: 512,
+        phvaPhase: 'Planear',
+        score: Math.round(calculatedScore),
+        status: calculatedScore >= 85 ? 'Aprobado' : (calculatedScore >= 60 ? 'Moderado' : 'Crítico'),
+        criteriaMatches: {
+          selectedRisk: riskClass,
+          expectedRisk: 'Clase IV (Riesgo Alto)',
+          isCorrect: riskClass.includes('IV'),
+          exactScore: calculatedScore
+        },
+        feedback: riskClass.includes('IV')
+          ? '¡Excelente! Clasificación de Riesgo IV acertada para industria metalmecánica (Dec. 768/2022). Aplican 60 estándares mínimos.'
+          : `Clasificación ${riskClass} registrada. Nota: La actividad metalmecánica con tratamiento de metales corresponde prioritariamente a Clase IV según Dec. 768/2022.`
+      }).returning();
+
+      return { event: createdEvent, submission: createdSubmission };
+    });
 
     res.status(201).json({
       message: 'Clasificación de riesgo guardada exitosamente en PostgreSQL',
@@ -616,11 +727,11 @@ app.post('/api/evaluations/risk-classification', async (req, res) => {
   }
 });
 
-app.use((req, res) => {
+app.use((_req, res) => {
   res.status(404).json({ code: 'NOT_FOUND', message: 'Recurso no encontrado' });
 });
 
-app.use((err: any, req: express.Request, res: express.Response, _next: express.NextFunction) => {
+app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   if (err?.message === 'Origen no permitido por CORS') {
     return res.status(403).json({ code: 'CORS_FORBIDDEN', message: 'Origen no permitido' });
   }
@@ -635,16 +746,32 @@ app.use((err: any, req: express.Request, res: express.Response, _next: express.N
   res.status(status).json({ code: status >= 500 ? 'INTERNAL_ERROR' : 'REQUEST_ERROR', message });
 });
 
+const server = app.listen(port, () => {
+  console.log(`[SimulSST API] Servidor ejecutándose en http://localhost:${port}`);
+});
+
+async function gracefulShutdown(signal: string) {
+  console.log(`[SimulSST API] Recibida señal ${signal}, cerrando conexiones...`);
+  server.close(async () => {
+    try {
+      await pool.end();
+      process.exit(0);
+    } catch (err) {
+      console.error('Error cerrando pool de PostgreSQL:', err);
+      process.exit(1);
+    }
+  });
+}
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
 process.on('unhandledRejection', (reason) => {
   console.error('Promesa no controlada:', reason);
 });
 
 process.on('uncaughtException', (error) => {
   console.error('Excepción no controlada:', error);
-});
-
-app.listen(port, () => {
-  console.log(`[SimulSST API] Servidor ejecutándose en http://localhost:${port}`);
 });
 
 export default app;
