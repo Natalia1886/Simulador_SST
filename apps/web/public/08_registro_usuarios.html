@@ -169,6 +169,7 @@
     SimulSST Pro © 2026 Plataforma Educativa de Seguridad y Salud en el Trabajo.
   </footer>
 
+  <script src="./api-client.js"></script>
   <script>
     // Radio button role selector logic
     const roleEstudiante = document.getElementById('roleEstudiante');
@@ -239,7 +240,7 @@
       submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
 
       try {
-        const res = await fetch('http://localhost:4000/api/users/register', {
+        const res = await fetch('https://simulador-sst.onrender.com/api/users/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ fullName, phone, role, email, password, groupId, docenteCode })
@@ -249,6 +250,9 @@
         banner.classList.remove('hidden');
 
         if (res.ok) {
+          if (data.token) {
+            window.SimulSST.setSession(data.token, data.user);
+          }
           banner.className = 'mb-6 p-4 rounded-xl text-sm font-medium bg-emerald-50 text-emerald-800 border border-emerald-200';
           const targetLoginUrl = role === 'estudiante' ? 'index.html?rol=estudiante' : 'index.html?rol=docente';
           banner.innerHTML = `<strong>¡Usuario creado con éxito!</strong><br> • Nombre: <span class="font-semibold text-emerald-950">${data.user.fullName || fullName}</span><br> • Rol: <span class="capitalize font-semibold">${data.user.role}</span><br><div class="mt-3"><a href="${targetLoginUrl}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold transition-all shadow-sm">➔ Ir a Iniciar Sesión como ${role === 'estudiante' ? 'Estudiante' : 'Docente'}</a></div>`;
@@ -260,7 +264,7 @@
       } catch (err) {
         banner.classList.remove('hidden');
         banner.className = 'mb-6 p-4 rounded-xl text-sm font-medium bg-red-50 text-red-800 border border-red-200';
-        banner.textContent = 'No se pudo conectar con el servidor (http://localhost:4000). Verifica que el backend esté activo.';
+        banner.textContent = 'No se pudo conectar con el servidor (https://simulador-sst.onrender.com). Verifica que el backend esté activo.';
       } finally {
         submitBtn.disabled = false;
         submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');

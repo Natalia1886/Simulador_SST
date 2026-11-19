@@ -648,6 +648,7 @@
   </footer>
 
   <!-- LÓGICA JAVASCRIPT DE NAVEGACIÓN Y ACCIONES -->
+  <script src="./api-client.js"></script>
   <script>
     // Estado de sesión y evaluación dinámica
     let sesionUsuarioActual = {
@@ -702,7 +703,7 @@
       const certFecha = document.getElementById('certFecha');
 
       try {
-        const res = await fetch(`http://localhost:4000/api/evaluations/summary?email=${encodeURIComponent(email)}`);
+        const res = await fetch(`https://simulador-sst.onrender.com/api/evaluations/summary?email=${encodeURIComponent(email)}`);
         if (!res.ok) throw new Error('Respuesta no válida');
         const data = await res.json();
         evaluacionActual = data;
@@ -920,7 +921,7 @@
       const calculatedScore = selectedRisk.includes('IV') ? 92.5 : 70;
 
       try {
-        const response = await fetch('http://localhost:4000/api/evaluations/risk-classification', {
+        const response = await fetch('https://simulador-sst.onrender.com/api/evaluations/risk-classification', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -974,7 +975,7 @@
       mostrarNotificacion('Procesando documento y comparando contra rúbrica PHVA...');
 
       try {
-        const response = await fetch('http://localhost:4000/api/submissions/upload', {
+        const response = await fetch('https://simulador-sst.onrender.com/api/submissions/upload', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -1015,7 +1016,7 @@
         score: score || '90',
         rad: rad || `RAD-${new Date().getFullYear()}-SST`
       });
-      window.location.href = `http://localhost:4000/api/reports/certificate/pdf?${params.toString()}`;
+      window.location.href = `${window.SimulSST.API_BASE_URL}/api/reports/certificate/pdf?${params.toString()}`;
     }
 
     // Mostrar Toast flotante

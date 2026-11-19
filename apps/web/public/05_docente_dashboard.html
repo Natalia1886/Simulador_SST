@@ -789,6 +789,7 @@
     <span id="toast-message" class="">Guía Docente descargada.</span>
   </div>
   <!-- JAVASCRIPT INTERACTIVO INTEGRAL -->
+  <script src="./api-client.js"></script>
   <script>
     // 1. GESTIÓN DE TABS / VISTAS DEL SIDEBAR
     const navItems = document.querySelectorAll('.nav-list .nav-item');
@@ -874,7 +875,7 @@
       showToast('Guardando caso y criterios PHVA en PostgreSQL...');
 
       try {
-        const res = await fetch('http://localhost:4000/api/cases/criteria', {
+        const res = await fetch('https://simulador-sst.onrender.com/api/cases/criteria', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -936,7 +937,7 @@
         score: '88',
         rad: rad || `EVI-${new Date().getFullYear()}-SST`
       });
-      window.location.href = `http://localhost:4000/api/reports/certificate/pdf?${params.toString()}`;
+      window.location.href = `${window.SimulSST.API_BASE_URL}/api/reports/certificate/pdf?${params.toString()}`;
     }
 
     // Cargar entregas reales desde PostgreSQL al iniciar el dashboard
@@ -945,7 +946,7 @@
 
     async function cargarEntregasDesdeServidor() {
       try {
-        const res = await fetch('http://localhost:4000/api/submissions');
+        const res = await fetch('https://simulador-sst.onrender.com/api/submissions');
         const data = await res.json();
         const container = document.getElementById('submissions-list-container');
         const badgePendientes = document.getElementById('badge-pendientes');
@@ -1083,7 +1084,7 @@
     // Cargar lista dinámica y real de estudiantes desde PostgreSQL
     async function cargarEstudiantesDesdeServidor() {
       try {
-        const res = await fetch('http://localhost:4000/api/students');
+        const res = await fetch('https://simulador-sst.onrender.com/api/students');
         const data = await res.json();
         const tbody = document.querySelector('#overview-table tbody');
         const califTbody = document.getElementById('calificaciones-tbody');
