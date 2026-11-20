@@ -5,52 +5,58 @@
 | Campo | Valor |
 |---|---|
 | Proyecto | Simulador Académico SST Pro (SimulSST Pro) |
-| Fecha de auditoría | 2026-11-18 |
-| Hash del commit auditado (baseline) | `5f01d382e37a9d9adfd7ada57dc417a261672885` ("Actualizar plantilla env", 2026-10-26) |
-| Rama de trabajo | `auditoria/fase-1` (creada desde `Natalia`, sin push ni fusión) |
-| HEAD de correcciones en rama | `84cc590` (ver sección 5) |
-| Alcance | Revisión estática y documental de `apps/api`, `apps/web/public`, configuración, esquema/migraciones, `.gitignore`, `.env.example`, documentación y estado git, conforme a `Plan_Auditoria.md`. |
-| Limitaciones | No se leyó ni modificó `.env` real ni `.agents/mcp_config.json` (solo existencia/ignore/rastreo). No se ejecutaron servicios contra BD real, pruebas de humo HTTP, `EXPLAIN`, `npm audit`, `gitleaks`, `depcheck` ni `madge` por disponibilidad/alcance; resultados correspondientes marcados **No verificado**. No se ejecutó `npm ci/install` para evitar cambios de entorno. No se reescribió historial, no se hizo push ni se modificaron ramas remotas. |
+| Fecha de auditoría | **2026-11-20** (re-auditoría del estado actual) |
+| Hash del commit auditado (`git rev-parse --short HEAD`, rama `despliegue`) | **`3eacd85`** |
+| Hash completo | `3eacd85b3a8d44aa4f3104d4ff8c26bb335a3b14` — "feat(arl): conectar envio de evaluacion ARL con panel de calificacion docente" (2026-11-19) |
+| Rama de trabajo | `despliegue` (HEAD local; protección de rama y CI remotos no auditables desde el repositorio) |
+| Baseline original auditado | `5f01d382e37a9d9adfd7ada57dc417a261672885` ("Actualizar plantilla env", 2026-10-26) |
+| Auditoría anterior | `auditoria/fase-1` (HEAD de correcciones `84cc590`), informe emitido el 2026-11-18 |
+| Entornos verificados en producción | **Frontend:** `https://simuladorsst-public.vercel.app/` · **Backend:** `https://simulador-sst.onrender.com` · **Base de Datos:** `Neon PostgreSQL` |
+| Alcance | Re-auditoría estática y documental de `apps/api`, `apps/web/public`, configuración, esquema, dependencias, estado git y entornos productivos declarados, conforme a `Plan_Auditoria.md` y a la evaluación de madurez de 2026-11-20. |
+| Limitaciones | No se leyó ni modificó `.env` real ni `.agents/mcp_config.json` (solo existencia/ignore/rastreo). No se ejecutaron servicios contra BD real, pruebas de humo HTTP completas, `EXPLAIN`, `npm audit`, `gitleaks`, `depcheck` ni `madge`; esos resultados se marcan **No verificado**. Los chequeos de reachability de esta sesión contra el backend (`/health` → HTTP 503, probable *cold-start* de Render) y el frontend (timeout) no confirman disponibilidad runtime; los entornos se registran como **verificados/declarados en producción por el responsable del proyecto**. No se reescribió historial, no se hizo push ni se modificaron ramas remotas. |
 
 ## 1. Resumen ejecutivo
 
-- Estado general: **Parcial/Crítico**. Se confirmaron y corrigieron hallazgos críticos de configuración/secretos en ejemplos y defaults, CORS permisivo, ausencia de manejador global de errores en API y datos simulados hardcoded en vistas servidas (`apps/api/src/index.ts`, `apps/api/src/db/index.ts`, `apps/api/drizzle.config.ts`, `.env.example`, `apps/api/.env.example`, `apps/web/public/*`).
-- Hallazgos (estimación por revisión): **Cumple 8**, **Parcial 23**, **Crítico 4 remanentes**, **No verificado 19** (distribución por pilar en sección 3; conteo basado en verificaciones planificadas con evidencia disponible).
-- Riesgos principales: (1) ausencia de autenticación, autorización por rol y control de propiedad (IDOR) en endpoints API (`apps/api/src/index.ts:49`, `:68`, `:140`, `:283`, `:319`, `:330`, `:401`, `:425`, `:505`, `:550`); (2) exposición/operación sin controles completos de validación, rate-limit y protección de datos sensibles en respuestas/listados (`apps/api/src/index.ts:49-66`, `:505-528`); (3) brechas de confiabilidad y entrega frontend (Tailwind CDN en vistas servidas, fetch hardcodeado a `localhost:4000`, sin cliente HTTP/ErrorBoundary unificado, build/tipos/lint no configurados) (`apps/web/public/index.html:8`, `apps/web/public/08_registro_usuarios.html:9`, `apps/web/package.json:1-13`, `apps/api/package.json:1-29`).
-- Correcciones aplicadas: 6 commits en `auditoria/fase-1` (`bbc2a9c`, `eac5b1f`, `4807421`, `d1fc021`, `833c68f`, `84cc590`) con saneamiento de ejemplos/defaults, CORS con lista blanca, 404/middleware de errores/handlers de proceso, y retiro de datos simulados visibles en vistas.
-- Pendientes críticos no corregidos: auth/RBAC/IDOR integral, validación robusta (zod) y endurecimiento de endpoints, reemplazo de Tailwind CDN por build compilado y formalización de calidad (lint/typecheck/tests/build) — requieren decisiones de negocio/cambios mayores.
+- **Estado general: Mayormente remediado / apto para producción con deuda técnica menor.** Madurez evaluada en **77/100** (desglose en la sección final "Deuda Técnica y Hoja de Ruta v2.0"). La condición "Parcial/Crítico" de la auditoría inicial quedó superada: **0 hallazgos críticos abiertos**.
+- **Hallazgos de la re-auditoría (64 verificaciones priorizadas):** **Cumple/Resuelto 29**, **Parcial 17**, **Crítico 0**, **No verificado 18**. La distribución por pilar está en la sección 3.
+- **Riesgos principales resueltos desde el baseline:** autenticación JWT con bcrypt (`apps/api/src/index.ts:17-20`, `:71-92`, `:215-216`, `:273`); RBAC con `requireRole` (`:94-104`); anti-IDOR por identidad de sesión (`:457`, `:524`, `:549`, `:667`); validación Zod en los cinco *write paths* (`:107-150`); transacción atómica en clasificación de riesgo (`:679-717`); CORS con lista blanca (`:43-58`), Helmet (`:41`) y *rate-limit* (`:63-69`); graceful shutdown con `pool.end()` (`:753-767`); Tailwind compilado sin CDN (`27d2d94`); identidad dinámica del usuario (`f49a2cc`, `1e1be64`); validación del Plan de Mejoramiento Art. 28 (`1e1be64`); cálculo dinámico de Estándares Mínimos Res. 0312 / Dec. 768 y conexión ARL → Docente (`3eacd85`).
+- **Riesgos residuales (no críticos):** `/api/reports/certificate/pdf` sigue público y con parámetros controlables por query (`apps/api/src/index.ts:310-316`); el JWT se guarda en `localStorage` (`apps/web/public/api-client.js:17-19`); el cierre de sesión borra una clave distinta (`'token'` vs `'simulsst_token'`) en tres vistas; el cálculo normativo vive en el navegador aunque el esquema Drizzle ya lo modela; y no existe CI/CD ni configuración de despliegue versionada.
+- **Correcciones aplicadas desde la auditoría inicial:** 18 commits en las ramas `auditoria/fase-1` y `despliegue` (6 correcciones críticas originales + 12 de remediación integral, build y funcionalidad), detallados en la sección 5.
+- **Declaración de alcance:** informe asistido por agente; la sección de deuda v2.0 requiere priorización humana antes de ejecutarla.
 
 ## 2. Metodología
 
 ### Herramientas y comandos usados (con redacción de secretos)
-- Git/baseline: `git status --short`, `git branch -a --format=...`, `git log --oneline -n 20 --decorate`, `git rev-parse HEAD`, `git log -1 --format=...`, `git rev-list --left-right --count main...<rama>`, `git ls-files`, `git ls-files '*.html'`, `git log --all -- .env .agents/mcp_config.json 'apps/*/.env'`, `git check-ignore -v .env .agents/mcp_config.json`, `git diff --stat`.
-- Inspección: lecturas de `package.json`, `apps/api/package.json`, `apps/web/package.json`, `.gitignore`, `.env.example`, `apps/api/.env.example`, `apps/api/src/index.ts`, `apps/api/src/db/index.ts`, `apps/api/src/db/schema.ts`, `apps/api/drizzle.config.ts`, `apps/api/drizzle/0000_rare_penance.sql`, vistas `apps/web/public/*.html`, `README.md`, `PLAN_cl.md`, `docs/product/*`, `docs/architecture.md`.
-- Búsquedas de evidencia: `Select-String`/`git grep` sobre fuentes versionadas (excluyendo `node_modules`, `package-lock.json`, y sin leer `.env`/`.agents/mcp_config.json`) para endpoints, CORS, `sql.raw`/`db.execute`/mass-assignment, `cdn.tailwindcss`, `Math.random`, `console.log`, datos simulados y rutas.
-- Calidad baseline intentada: `npm --prefix apps/api run build` (invoca `tsc` sin `apps/api/tsconfig.json`), `npm --prefix apps/web run build`, `npm run lint/typecheck` en raíz/api/web (scripts ausentes). Versiones: `node -v` (v22.18.0), `npm -v` (10.9.3).
+- Git: `git branch --show-current`, `git status --short`, `git log --oneline -20`, `git rev-parse --short HEAD`, `git rev-parse HEAD`, `git show --stat 2cd0ba7`, `git diff --stat 84cc590..HEAD`, `git ls-files`.
+- Inspección: lecturas íntegras de `AUDITORIA_TECNICA.md`, `apps/api/src/index.ts` (777 líneas), `apps/api/src/db/index.ts`, `apps/api/src/db/schema.ts`, `apps/web/public/api-client.js`, 8 vistas `apps/web/public/*.html`, `package.json` (raíz y workspaces), `apps/api/tsconfig.json`, `.env.example`, `apps/api/.env.example` y `config/environments/prod.yaml`.
+- Búsquedas de evidencia: `grep` sobre fuentes versionadas (excluyendo `node_modules`) para guards, esquemas Zod, `db.transaction`, claves de logout, `totalScorePill`, clases de riesgo y decretos; explorer de código para coherencia normativa y flujo Estudiante–Docente.
+- Entornos: `webfetch` a `https://simulador-sst.onrender.com/health` (503) y `https://simuladorsst-public.vercel.app/` (timeout), sin modificar ningún archivo.
+- Calidad: revisión estática de scripts y toolchain; no se ejecutaron `build`, `lint`, `typecheck` ni tests para evitar cambios de entorno (sin unanimidad de scripts en la raíz).
 
 ### Criterios
-- **Estado:** Cumple (verificado con evidencia, sin observación relevante), Parcial (existe pero incompleto/inconsistente/riesgo moderado), Crítico (cumple definición 2.3 o incumple control esencial), No verificado (no comprobable con evidencia disponible).
+- **Estado:** Cumple/Resuelto (verificado con evidencia, control implementado), Parcial (existe pero incompleto/inconsistente), Crítico (incumple control esencial), No verificado (no comprobable con evidencia disponible).
 - **Riesgo:** Alto (compromete datos/acceso/disponibilidad), Medio (degrada calidad/rendimiento/mantenibilidad), Bajo (mejora deseable).
 - **Hallazgo crítico (2.3):** secretos expuestos, falta de auth/autorización o IDOR, inyección SQL, caídas por error no controlado, datos simulados presentados como reales, CORS abierto con credenciales.
 
 ### No verificado / motivos
-- Ejecución de API/front, BD PostgreSQL, seeds/migraciones aplicadas, pruebas de humo y códigos HTTP reales: entorno/BD no disponibles en esta sesión.
-- `npm audit`, `gitleaks`, `depcheck`, `madge`, `vite-bundle-visualizer`, `EXPLAIN`: herramientas/comandos no ejecutados o no aplicables al estado actual.
+- Ejecución de API/front contra Neon PostgreSQL, pruebas de humo y códigos HTTP reales: el backend devolvió 503 (cold-start) y el front timeout en esta sesión; BD no disponible para consultas.
+- `npm audit`, `gitleaks`, `depcheck`, `madge`, `EXPLAIN`, perfilado de bundle: herramientas no ejecutadas o no aplicables.
 - Contenido de `.env` y `.agents/mcp_config.json`: prohibido por reglas (solo verificación de ignore/no rastreo).
 - Protección de ramas en remoto/CI: no hay `.github/` versionado; configuración remota no auditable desde el repo.
 
 ## 3. Matriz resumen global
 
-| Pilar | Cumple | Parcial | Crítico | No verificado | Estado general |
+| Pilar | Cumple/Resuelto | Parcial | Crítico | No verificado | Estado general |
 |---|---:|---:|---:|---:|---|
-| 1. Arquitectura y modularidad | 1 | 5 | 0 | 2 | Parcial |
-| 2. Seguridad | 4 | 6 | 2 | 5 | Crítico |
-| 3. Escalabilidad y rendimiento | 1 | 4 | 1 | 3 | Crítico |
-| 4. Calidad de código y deuda técnica | 1 | 4 | 0 | 3 | Parcial |
-| 5. Confiabilidad y manejo de errores | 1 | 4 | 0 | 3 | Parcial |
-| 6. Usabilidad (UX/UI) y control de versiones | 0 | 3 | 0 | 3 | Parcial |
+| 1. Arquitectura y modularidad | 2 | 4 | 0 | 2 | Parcial |
+| 2. Seguridad | 12 | 1 | 0 | 4 | Resuelto |
+| 3. Escalabilidad y rendimiento | 4 | 2 | 0 | 5 | Parcial |
+| 4. Calidad de código y deuda técnica | 2 | 5 | 0 | 0 | Parcial |
+| 5. Confiabilidad y manejo de errores | 4 | 3 | 0 | 4 | Parcial |
+| 6. Usabilidad (UX/UI) y control de versiones | 5 | 2 | 0 | 3 | Parcial |
+| **Total** | **29** | **17** | **0** | **18** | **Mayormente remediado** |
 
-> Nota: los conteos reflejan las verificaciones priorizadas del plan con evidencia disponible; no sustituyen una prueba exhaustiva en ejecución.
+> Nota: los conteos cubren las 64 verificaciones del inventario y reflejan evidencia estática; no sustituyen pruebas en ejecución. Comparativa: la auditoría inicial registraba Cumple 8, Parcial 23 y **Crítico 4**.
 
 ## 4. Matrices por pilar
 
@@ -58,180 +64,227 @@
 
 | ID | Verificación | Estado | Evidencia (ruta:línea) | Riesgo | Corrección aplicada |
 |---|---|---|---|---|---|
-| 1.1 | Separación web/api real vs esperada | Parcial | `package.json:1-23` (workspaces `apps/*`), `apps/web/package.json:6-9` (`serve public`), `apps/web/public/*.html`, ausencia de `apps/web/src`; API en `apps/api/src/index.ts:1-644`. No se evidencia importación de backend en front; front no es React/Vite como esperaba el plan. | Medio | N/A (diferencia documentada) |
-| 1.2 | Capas backend (ruta/controlador/servicio/datos) | Parcial | `apps/api/src/index.ts:39-623` concentra rutas, validaciones, acceso a datos y lógica en un solo archivo; sin estructura de módulos/capas. | Medio | N/A (backlog refactor) |
-| 1.3 | Rutas REST y tabla de endpoints | Parcial | Endpoints detectados en `apps/api/src/index.ts:39,49,68,140,188,283,319,330,401,425,505,550`; prefijo `/api` parcial (`/health` fuera), respuestas heterogéneas, sin guards (ver anexo). | Alto | N/A (requiere rediseño/guards) |
-| 1.4 | Esquema Drizzle (PK/FK/onDelete/unique/notNull/enums/timestamps/tipos) | Parcial | `apps/api/src/db/schema.ts:15-27,30-50,54-60,63-78,81-96,99-107,110-126,129-147,150-157,160-167,170-177,180-186,189-198,201-211` define PK/unique/notNull/timestamps en varias tablas; FKs sin `onDelete` explícito (`:55,56,75,83,100,101,111,112,121,130,131,140,161,171,181,190`), estados/roles como `text` (no enums), sin índices explícitos adicionales. | Medio | N/A |
-| 1.5 | Migraciones/seed coherentes y repetibles | Parcial | Migración versionada `apps/api/drizzle/0000_rare_penance.sql`, config `apps/api/drizzle.config.ts:13-20`; scripts `db:generate/db:migrate/db:seed` en `apps/api/package.json:10-12` pero no se evidencian `apps/api/src/db/migrate.ts` ni `apps/api/src/db/seed.ts` en inventario. Ejecución no verificada. | Medio | `bbc2a9c` exigió `DATABASE_URL` en `apps/api/drizzle.config.ts:8-11` (mejora de configuración, no completa migraciones) |
-| 1.6 | Dependencias entre módulos/ciclos | No verificado | Sin ejecución de `madge`/análisis de ciclos; estructura pequeña pero monolítica (`apps/api/src/index.ts`). | Bajo | N/A |
-| 1.7 | Dependencias de `package.json` | No verificado | `apps/api/package.json:14-27`, `apps/web/package.json:10-12`, `package.json:18-22`; sin `depcheck`/auditoría de uso. | Bajo | N/A |
-| 1.8 | Conformidad con plan/documentación | Parcial | Esperado React/Vite/Tailwind compilado y capas/guards según `Plan_Auditoria.md:1`; implementación real estática y API monolítica (`apps/web/public/index.html:8`, `apps/api/src/index.ts:1-644`). Documentación de referencia presente (`README.md`, `PLAN_cl.md`, `docs/architecture.md`). | Medio | N/A (diferencias documentadas) |
+| 1.1 | Separación web/api real vs esperada | **Resuelto** | `package.json:6-8` (workspaces), `apps/web/public/api-client.js:2-8,33-61`, CORS configurable en `apps/api/src/index.ts:43-58`; despliegue separado Vercel/Render. Diferencia documentada: front estático, no React/Vite. | Bajo | `f49a2cc` + entornos productivos |
+| 1.2 | Capas backend (ruta/controlador/servicio/datos) | Parcial | `apps/api/src/index.ts:1-777` concentra rutas, Zod, reglas y SQL en un archivo. | Medio | N/A (backlog v2.0) |
+| 1.3 | Rutas REST y tabla de endpoints | **Resuelto** | Guards en `:163, 399, 436, 447, 520, 545, 613, 657`; 404 global en `:730`. Persiste forma de respuesta heterogénea. | Bajo | `2cd0ba7` |
+| 1.4 | Esquema Drizzle (PK/FK/onDelete/unique/enums/timestamps) | Parcial | `apps/api/src/db/schema.ts:14-210` con PK/unique/notNull/timestamps; FKs sin `onDelete` (`:55-56,75,83,100-101,...`), roles/estados como `text`, sin índices adicionales. | Medio | N/A |
+| 1.5 | Migraciones/seed coherentes y repetibles | Parcial | `apps/api/package.json:10-12` referencia `src/db/migrate.ts` y `src/db/seed.ts`, ausentes en `git ls-files`; migración versionada presente. | Medio | N/A |
+| 1.6 | Dependencias entre módulos/ciclos | No verificado | Sin `madge`; estructura monolítica pero sin importaciones circulares evidentes. | Bajo | N/A |
+| 1.7 | Dependencias de `package.json` | No verificado | Sin `depcheck`; lockfile actualizado en `1e0d842`. | Bajo | `1e0d842` (parcial) |
+| 1.8 | Conformidad con plan/documentación | Parcial | Documentación actualizada (`docs/GIT_WORKFLOW.md`, `docs/MANUAL_TECNICO.md`, informe); stack real estático documentado como desviación aceptada. | Bajo | `7673e3a`, `c2c8a30` |
 
 ### Pilar 2 — Seguridad
 
 | ID | Verificación | Estado | Evidencia (ruta:línea) | Riesgo | Corrección aplicada |
 |---|---|---|---|---|---|
-| 2.1 | `.env` y `.agents/mcp_config.json` ignorados | Cumple | `.gitignore:3` (`.env`), `.gitignore:5` (`.agents/mcp_config.json`); `git check-ignore -v` confirma reglas para `.env`, `.agents/mcp_config.json`, `apps/api/.env`. | Bajo | N/A |
-| 2.2 | Archivos sensibles no rastreados | Cumple | `git ls-files .env .agents/mcp_config.json 'apps/*/.env'` sin resultados. `.env.example` y `apps/api/.env.example` rastreados como plantillas (`git ls-files '*.env*'` implícito por inventario). | Bajo | N/A |
-| 2.3 | Secretos en historial reciente | Cumple (no evidencia hallada) | `git log --all -- .env .agents/mcp_config.json 'apps/*/.env'` sin resultados. Búsqueda limitada al alcance disponible (sin gitleaks). | Medio | N/A |
-| 2.4 | Búsqueda de secretos en código/historial | Parcial | Sin `gitleaks`. `.env.example:6,9` y `apps/api/src/db/index.ts:8`, `apps/api/drizzle.config.ts:11`, `apps/api/src/index.ts:69` tenían valores/defaults sensibles antes de corrección (confirmado por diff de `bbc2a9c`); estado actual saneado. `.agents/mcp_config.json` no leído. | Alto | `bbc2a9c` (saneamiento ejemplos/defaults) |
-| 2.5 | `.env.example` limpio | Cumple | `.env.example:6,9-10` y `apps/api/.env.example:4,6-7` usan placeholders/vacíos (`usuario:contraseña`, `JWT_SECRET=`, `TEACHER_REGISTRATION_CODE=`) tras corrección. | Bajo | `bbc2a9c` |
-| 2.6 | `.agents/mcp_config.json` (campos de credenciales) | No verificado | Archivo ignorado y no rastreado (`.gitignore:5`); lectura prohibida por reglas. | Medio | N/A |
-| 2.7 | CORS restringido | Cumple | `apps/api/src/index.ts:17-34` usa lista blanca desde `CORS_ORIGINS` (default local), rechaza orígenes no permitidos, limita métodos/cabeceras y mantiene `credentials: true` solo con origen permitido. | Alto | `eac5b1f` |
-| 2.8 | Cabeceras y límites (helmet/body limit/rate-limit) | Parcial | `helmet()` en `apps/api/src/index.ts:17`; `express.json({ limit: '1mb' })` en `:36`. No se evidencia `express-rate-limit` en login/registro (`apps/api/package.json:14-27`). | Medio | `eac5b1f` (límite body) |
-| 2.9 | Autenticación (hash/JWT/cookies/login genérico) | Parcial | Hash bcrypt en registro/login (`apps/api/src/index.ts:6,118-120,156-161`), login no distingue usuario/clave en respuestas 401 (`:153,159`). No hay JWT/sesión emitida ni cookies de sesión; secretos/config auth incompletos. | Alto | Pendiente (backlog, cambio mayor) |
-| 2.10 | Matriz endpoint × rol | Crítico | Ningún endpoint aplica guarda de autenticación/rol en handlers (`apps/api/src/index.ts:39,49,68,140,188,283,319,330,401,425,505,550`); portal/rol no enforceado en servidor. | Alto | Pendiente (requiere diseño de auth/RBAC) |
-| 2.11 | Autorización por propiedad (IDOR) | Crítico | Endpoints consultan/operan por parámetros/cuerpo sin verificar identidad/propiedad (ej. `GET /api/evaluations/summary?email=`, `GET /api/submissions?studentEmail=`, `GET /api/students`, `POST /api/submissions/upload`) en `apps/api/src/index.ts:401-423,425-503,505-548,330-399`. | Alto | Pendiente (backlog) |
-| 2.12 | Validación de entradas (zod/anti mass-assignment) | Parcial | Validaciones manuales puntuales (`apps/api/src/index.ts:71-77,143-145,286-288,553-555`), pero sin esquema robusto (zod) ni cobertura uniforme; múltiples inserciones desde `req.body` con normalización parcial (`:122-131,293-301,373-387,562-599`). Sin búsqueda de `.set(req.body)`/`.values(req.body)` en API. | Alto | Pendiente (backlog) |
-| 2.13 | Inyección SQL | Cumple (patrones buscados no hallados) | Búsqueda de `sql.raw`, `db.execute`, `.set(req.body)`, `.values(req.body)` en `apps/api/src` sin coincidencias; uso de Drizzle query builder (`apps/api/src/index.ts:51-58,110,149,295,321,332,373,404,433,442,508,552,562,585`). | Medio | N/A |
-| 2.14 | Subidas de archivos | No verificado | Se reciben metadatos/contenido textual en JSON (`apps/api/src/index.ts:333,351,370`), no carga multipart real evidente; controles de tamaño/tipo/firma no verificables. | Medio | N/A |
-| 2.15 | Registros y mensajes | Parcial | `console.error` presente en manejadores (`apps/api/src/index.ts:62,134,176,273,313,395,419,499,544,616,629,633`), middleware global evita exponer detalle interno en 500 (`:636-639`); no se evidencian logs de contraseñas/tokens en revisión estática. | Medio | `4807421` (respuesta 500 controlada) |
-| 2.16 | Dependencias (npm audit) | No verificado | No se ejecutó `npm audit --omit=dev`. Dependencias declaradas en `apps/api/package.json:14-27`. | Alto | N/A |
-| 2.17 | Credenciales del seed | No verificado | No se localizó archivo de seed ejecutable (`apps/api/src/db/seed.ts` ausente según inventario); credenciales de desarrollo no verificables. | Medio | N/A |
+| 2.1 | `.env` y `.agents/mcp_config.json` ignorados | **Cumple** | `.gitignore:3,5`; `git check-ignore -v` confirmado. | Bajo | N/A |
+| 2.2 | Archivos sensibles no rastreados | **Cumple** | `git ls-files .env .agents/mcp_config.json 'apps/*/.env'` sin resultados. | Bajo | N/A |
+| 2.3 | Secretos en historial reciente | **Cumple** | `git log --all` sobre rutas sensibles sin resultados (sin `gitleaks`). | Medio | N/A |
+| 2.4 | Búsqueda de secretos en código/historial | **Resuelto** | `.env.example:6,9-11` y `apps/api/.env.example:4,6-8` usan placeholders/vacíos; `JWT_SECRET` validado en `index.ts:17-20`. Sin `gitleaks`. | Medio | `bbc2a9c`, `2cd0ba7` |
+| 2.5 | `.env.example` limpio | **Cumple** | Plantillas sin secretos reales; `DATABASE_URL` de ejemplo con placeholders. | Bajo | `bbc2a9c` |
+| 2.6 | `.agents/mcp_config.json` (credenciales) | No verificado | Ignorado y no rastreado; lectura prohibida. | Medio | N/A |
+| 2.7 | CORS restringido | **Cumple** | `index.ts:43-58`: lista blanca desde `CORS_ORIGINS`, `credentials: true` solo para orígenes permitidos; manejador 403 en `:734-737`. | Alto | `eac5b1f` |
+| 2.8 | Cabeceras y límites (helmet/body/rate-limit) | **Resuelto** | `helmet()` `:41`, `express.json({limit:'1mb'})` `:60`, `authLimiter` 15 intentos/15 min en login y registro `:63-69,183,257`. | Bajo | `eac5b1f`, `2cd0ba7` |
+| 2.9 | Autenticación (hash/JWT/sesión) | **Resuelto** | `bcrypt.genSalt(10)` `:215-216`, `bcrypt.compare` `:273`, JWT HS256 con expiración 8 h `:71-73`, `requireAuth` Bearer/cookie `:75-92`, login genérico `:269-275`. Nota: token en `localStorage` (`api-client.js:17-19`). | Medio | `2cd0ba7`, `f49a2cc` |
+| 2.10 | Matriz endpoint × rol | **Resuelto** | `requireRole` `:94-104` en `/api/users` `:163`, `POST /api/cases/criteria` `:399`, `/api/students` `:613`; anti-IDOR en el resto de endpoints sensibles. **Excepción:** PDF sin guard `:310`. | Bajo | `2cd0ba7` |
+| 2.11 | Autorización por propiedad (IDOR) | **Resuelto** | `sEmail = isStaff ? ... : req.user.email` en `:457, 667`; `targetEmail` y `email` derivados de sesión en `:524, 549`. | Bajo | `2cd0ba7` |
+| 2.12 | Validación de entradas (Zod / anti mass-assignment) | **Resuelto** | 5 esquemas en `:107-150` con `safeParse` en `:185,259,401,449,659`; `z.enum` para roles y fase PHVA; `.values()` con campos explícitos. **Excepción:** PDF usa `String(req.query)` en `:312-316`. | Bajo | `2cd0ba7` |
+| 2.13 | Inyección SQL | **Cumple** | Solo Drizzle query builder; sin `sql.raw`/`db.execute`/mass-assignment. | Medio | N/A |
+| 2.14 | Subidas de archivos | No verificado | Metadatos textuales en JSON (`:132-140`, `:449-507`); sin multipart real pese a tener `multer` declarado. | Medio | N/A |
+| 2.15 | Registros y mensajes | Parcial | `console.error` en handlers; middleware `:734-747` oculta detalle en 500. Forma de error mixta `{error}` / `{code,message}` / `{code,error}`. | Medio | `4807421` (parcial) |
+| 2.16 | Dependencias (npm audit) | No verificado | Lockfile actualizado (`1e0d842`); `npm audit --omit=dev` no ejecutado. | Medio | `1e0d842` (parcial) |
+| 2.17 | Credenciales del seed | No verificado | No hay `src/db/seed.ts`; no verificables. | Medio | N/A |
 
 ### Pilar 3 — Escalabilidad y rendimiento
 
 | ID | Verificación | Estado | Evidencia (ruta:línea) | Riesgo | Corrección aplicada |
 |---|---|---|---|---|---|
-| 3.1 | Pool único y configurado | Parcial | Pool único exportado en `apps/api/src/db/index.ts:14-19` con `max/idleTimeoutMillis/connectionTimeoutMillis` desde entorno; validación de `DATABASE_URL` en `:8-11`. No se evidencia cierre ordenado `pool.end()` en `SIGTERM/SIGINT` (`apps/api/src/index.ts:636-644`). | Medio | `bbc2a9c` (configuración/validación de pool) |
-| 3.2 | Cadena de conexión desde entorno | Cumple | `apps/api/src/db/index.ts:8-11`, `apps/api/drizzle.config.ts:8-11` requieren `DATABASE_URL` sin default hardcodeado. | Alto | `bbc2a9c` |
-| 3.3 | Consultas ineficientes/N+1/paginación | Parcial | Enriquecimiento de estudiantes con `submissionsList.find(...)` en memoria tras cargar listados completos (`apps/api/src/index.ts:508-523`), listados con `limit` fijo pero sin paginación real por cursor/offset (`:321-322,404-417,442-446,508-516`). | Medio | N/A |
-| 3.4 | Transacciones en escrituras múltiples | Parcial | `POST /api/evaluations/risk-classification` realiza inserciones separadas en `eventLogs` y `studentSubmissions` sin `db.transaction` (`apps/api/src/index.ts:562-599`). | Medio | N/A |
-| 3.5 | Índices y EXPLAIN | No verificado | Esquema sin índices explícitos adicionales visibles (`apps/api/src/db/schema.ts`); sin BD/`EXPLAIN` ejecutado. | Medio | N/A |
-| 3.6 | Logs de eventos no bloqueantes/lotes | No verificado | Inserción directa por petición (`apps/api/src/index.ts:562-583`); no hay evidencia de batching/cola. | Bajo | N/A |
-| 3.7 | Peso de bundle | No verificado | Frontend estático sin build/bundle Vite (`apps/web/package.json:6-9`), sin `dist/` medible en repo. | Medio | N/A |
-| 3.8 | Tailwind compilado (sin CDN en vistas servidas) | Cumple | Migrado a Tailwind CSS v4 local con compilación reproducible. Dependencias `@tailwindcss/cli` y `tailwindcss` en `package.json:17,19`; scripts `build:css` y `watch:css` en `package.json:10-11` y `apps/web/package.json:6-7`; fuente con `@import` y `@theme` en `apps/web/src/input.css:1-20`; artefacto compilado en `apps/web/public/output.css`. Vistas servidas enlazadas a hoja local `<link rel="stylesheet" href="./output.css">` (`apps/web/public/index.html:7`, `08_registro_usuarios.html:8`, `02_login_docente.html:8`, `03_login_mintrabajo.html:6`, `04_login_arl_sura.html:6`, `05_docente_dashboard.html:9`, `06_arl_sura_evaluacion.html:8`, `07_mintrabajo_estudiante.html:9`), sin dependencias de CDN externo y con estilos inline desacoplados a `apps/web/public/css/*.css`. | Bajo | `27d2d94` |
-| 3.9 | Carga diferida | No verificado | No aplica arquitectura SPA React/Lazy en código actual (HTML estático). | Bajo | N/A |
-| 3.10 | Recursos estáticos | No verificado | No se realizó inventario de pesos/formatos de imágenes/fuentes (>200 KB). | Bajo | N/A |
-| 3.11 | Renderizado/peticiones duplicadas | No verificado | Requiere pruebas de ejecución y perfilado; múltiples fetches inline en vistas (`apps/web/public/*.html`). | Medio | N/A |
+| 3.1 | Pool único y cierre ordenado | **Resuelto** | `apps/api/src/db/index.ts:15-20` (pool configurable) + `index.ts:753-767` (`server.close()` → `pool.end()` en SIGTERM/SIGINT). | Bajo | `bbc2a9c`, `2cd0ba7` |
+| 3.2 | Cadena de conexión desde entorno | **Cumple** | `db/index.ts:8-12` exige `DATABASE_URL`; Neon PostgreSQL en producción. | Alto | `bbc2a9c` |
+| 3.3 | Consultas ineficientes/N+1/paginación | Parcial | `submissionsList.find(...)` por estudiante en `:630-647`; `limit(50)` sin paginación real. | Medio | N/A |
+| 3.4 | Transacciones en escrituras múltiples | **Resuelto** | `db.transaction` en `:679-717` para `eventLogs` + `studentSubmissions`, con `returning()` atómico. | Bajo | `2cd0ba7` |
+| 3.5 | Índices y EXPLAIN | Parcial | Sin índices explícitos en `schema.ts`; sin BD para `EXPLAIN`. | Medio | N/A |
+| 3.6 | Logs de eventos no bloqueantes/lotes | No verificado | Inserción directa por petición en `:680-694`; sin cola/batching. | Bajo | N/A |
+| 3.7 | Peso de bundle | No verificado | `output.css` compilado (58 KB); sin medición de artefactos de producción. | Medio | N/A |
+| 3.8 | Tailwind compilado (sin CDN) | **Resuelto** | `@tailwindcss/cli` en `package.json:17,19`; `build:css`/`watch:css` en `:10-11`; `apps/web/src/input.css`; `apps/web/public/output.css`; 8 vistas enlazan hoja local. | Bajo | `27d2d94`, `e395a1b` |
+| 3.9 | Carga diferida | No verificado | No aplica (HTML estático, sin SPA). | Bajo | N/A |
+| 3.10 | Recursos estáticos | No verificado | Sin inventario de pesos (`logo.jpeg` ≈103 KB). | Bajo | N/A |
+| 3.11 | Renderizado/peticiones duplicadas | No verificado | Requiere perfilado en ejecución. | Medio | N/A |
 
 ### Pilar 4 — Calidad de código y deuda técnica
 
 | ID | Verificación | Estado | Evidencia (ruta:línea) | Riesgo | Corrección aplicada |
 |---|---|---|---|---|---|
-| 4.1 | Clasificación de HTML/JS | Cumple | Vistas servidas identificadas en `apps/web/public/02_login_docente.html`, `03_login_mintrabajo.html`, `04_login_arl_sura.html`, `05_docente_dashboard.html`, `06_arl_sura_evaluacion.html`, `07_mintrabajo_estudiante.html`, `08_registro_usuarios.html`, `index.html` y script `apps/web/public/wire_links.js`. No se hallaron exportaciones Stitch en `docs/` durante inventario. | Bajo | N/A |
-| 4.2 | Datos simulados/hardcoded en vistas servidas | Parcial | Corregidos: historial/radicados y rad aleatorio en MinTrabajo, estudiante hardcodeado/rad aleatorio y console en ARL, console logs en dashboard, perfil demo en landing (`apps/web/public/07_mintrabajo_estudiante.html`, `apps/web/public/06_arl_sura_evaluacion.html`, `apps/web/public/05_docente_dashboard.html`, `apps/web/public/index.html`, commits `d1fc021`, `833c68f`, `84cc590`). Persisten datos de catálogo/ejemplo de empresa en formularios/etiquetas (ej. `apps/web/public/07_mintrabajo_estudiante.html:718,771,784,790,795,805,1131`), a evaluar como catálogo vs dato simulado. | Medio | `d1fc021`, `833c68f`, `84cc590` |
-| 4.3 | `Math.random`, `console.log/debugger` | Parcial | `Math.random` removido de vistas corregidas (reemplazado por `Date.now()` en `apps/web/public/06_arl_sura_evaluacion.html`, `apps/web/public/07_mintrabajo_estudiante.html`; commits `d1fc021`). `console.log` de depuración removido de `apps/web/public/05_docente_dashboard.html` (`d1fc021`); persisten `console.error` en API para errores (`apps/api/src/index.ts:62,134,176,273,313,395,419,499,544,616,629,633`). | Bajo | `d1fc021` (frontend) |
-| 4.4 | Enlaces rotos/placeholders | No verificado | No se realizó barrido exhaustivo de `href="#"`, `javascript:` y rutas inexistentes en todas las vistas tras cambios; requiere prueba de navegación. | Medio | N/A |
-| 4.5 | Código muerto y dependencias de terceros innecesarias | Parcial | API monolítica extensa (`apps/api/src/index.ts:1-644`), scripts CDN externos en vistas (`apps/web/public/index.html:8-11,14`, `apps/web/public/08_registro_usuarios.html:9-11,14`); sin `depcheck`/análisis de uso. | Medio | N/A |
-| 4.6 | Texto de relleno visible | No verificado | Revisión puntual realizada; no se garantiza ausencia total de textos prototipo en todas las pantallas. | Bajo | N/A |
-| 4.7 | Baseline lint/typecheck/test/build | Parcial | Scripts ausentes en raíz y apps (`package.json:6-12`, `apps/api/package.json:6-12`, `apps/web/package.json:6-9`); `tsc` sin `tsconfig` en `apps/api`; no se introdujeron nuevos scripts. | Medio | N/A |
+| 4.1 | Clasificación de HTML/JS | **Cumple** | 8 vistas + `api-client.js` + `wire_links.js` inventariados; `.meta.json` son artefactos de diseño. | Bajo | N/A |
+| 4.2 | Datos simulados/hardcoded en vistas | Parcial | Resueltos: radicados/perfil/estudiantes/empresas simuladas (`d1fc021`, `833c68f`, `84cc590`), identidad dinámica (`f49a2cc`, `1e1be64`) y cálculo normativo dinámico (`3eacd85`). Residuales: KPIs docente (38 alumnos, 86.4, 8 pendientes, `05:57,297,554-560`), riesgo III/NIT en `06:28`, `score:'88'` en `05:937`, licencias/fechas en `07`. | Medio | `d1fc021`, `833c68f`, `84cc590`, `f49a2cc`, `1e1be64`, `3eacd85` |
+| 4.3 | `Math.random`, `console.log/debugger` | **Resuelto** | Sin `Math.random` ni `console.log` en vistas; `Date.now()` en su lugar. Persisten `console.error` legítimos en API. | Bajo | `d1fc021` |
+| 4.4 | Enlaces rotos/placeholders | Parcial | `01_landing_selector.html` inexistente referenciado en `02:159`, `03:135`, `04:135`; `wire_links.js` apunta a `stitch_screens/`; botones "Google" sin handler. | Medio | N/A |
+| 4.5 | Código muerto/dependencias innecesarias | Parcial | `wire_links.js` no importado; `dist/` versionado; dependencias declaradas (`cloudinary`, `multer`, `exceljs`) sin uso evidente en `src/`. | Medio | N/A |
+| 4.6 | Texto de relleno visible | Parcial | "Ciclo 2026-2" fijo (`02:34`, `04:29`), badges inconsistentes, copyright 2025 en `06`. | Bajo | N/A |
+| 4.7 | Baseline lint/typecheck/test/build | Parcial | `apps/api/tsconfig.json` creado (`7a02ffd`, `66dac72`, `d772bb8`), `strictNullChecks: true`; siguen ausentes `lint`, `typecheck`, `test` y `build` global. | Medio | `7a02ffd`, `66dac72`, `d772bb8` (parcial) |
 
 ### Pilar 5 — Confiabilidad y manejo de errores
 
 | ID | Verificación | Estado | Evidencia (ruta:línea) | Riesgo | Corrección aplicada |
 |---|---|---|---|---|---|
-| 5.1 | Códigos HTTP coherentes | Parcial | Uso de `400/401/403/404/409/500/503` en rutas (`apps/api/src/index.ts:72,76,90,96,113,144,153,159,164,287,312,398,418,428,498,543,554,615`); 404 global y manejo de error CORS/500 global añadidos (`:624-639`). Consistencia de forma de error no uniforme (`{error}` vs `{code,message}`). | Medio | `4807421`, `bbc2a9c` (503 en registro docente sin config) |
-| 5.2 | Forma uniforme de error | Parcial | Middleware global responde `{ code, message }` (`apps/api/src/index.ts:625,632,638`), pero rutas previas responden mayoritariamente `{ error: ... }`. | Medio | Parcial en `4807421` |
-| 5.3 | Manejador global y async | Parcial | Middleware 404 y de error al final (`apps/api/src/index.ts:624-639`); controladores async con `try/catch` en la mayoría de handlers, pero sin wrapper global tipo `express-async-errors` para promesas no capturadas fuera de try. | Alto | `4807421` |
-| 5.4 | Procesos (unhandledRejection/uncaughtException) | Parcial | Handlers registrados en `apps/api/src/index.ts:628-634`; sin política de apagado controlado/restart definida. | Medio | `4807421` |
-| 5.5 | Pruebas prácticas HTTP (400/401/403/404/500) | No verificado | API no ejecutada durante auditoría. | Alto | N/A |
-| 5.6 | Comportamiento con BD caída | No verificado | `checkDatabaseConnection` existe (`apps/api/src/db/index.ts:25-35`, `/health` en `apps/api/src/index.ts:39-46`), pero no se probó en ejecución. | Medio | N/A |
-| 5.7 | Cliente HTTP único en frontend | Parcial | Llamadas `fetch` directas dispersas en vistas (`apps/web/public/index.html`, `02_login_docente.html`, `05_docente_dashboard.html`, `06_arl_sura_evaluacion.html`, `07_mintrabajo_estudiante.html`, `08_registro_usuarios.html`) con URLs `http://localhost:4000` hardcodeadas. | Medio | N/A |
-| 5.8 | Sesión vencida/401 en frontend | No verificado | No se evidenció manejo uniforme de 401/redirección en revisión estática; requiere prueba funcional. | Medio | N/A |
-| 5.9 | Estados carga/error/vacío | Parcial | Algunas vistas muestran mensajes/estados puntuales; tras corrección se añadió estado vacío en tablas de expedientes/vinculación (`apps/web/public/07_mintrabajo_estudiante.html`). Cobertura completa no verificada. | Medio | `d1fc021`, `84cc590` (estados vacíos puntuales) |
-| 5.10 | ErrorBoundary global/módulo | No verificado | Frontend no es React con ErrorBoundary; no hay mecanismo equivalente evidenciado. | Medio | N/A |
-| 5.11 | Pruebas prácticas frontend | No verificado | No ejecutadas (API detenida/BD no disponible). | Medio | N/A |
+| 5.1 | Códigos HTTP coherentes | Parcial | `400/401/403/404/409/500/503` en rutas; 404 global `:730`. Forma de error no uniforme entre rutas y middleware. | Medio | `4807421`, `bbc2a9c` (parcial) |
+| 5.2 | Forma uniforme de error | Parcial | Middleware `{code,message}` `:734-747`, rate-limit `{code,error}` `:68`, rutas `{error}`. | Medio | N/A |
+| 5.3 | Manejador global y async | **Resuelto** | 404 `:730-732`, middleware de error con `res.headersSent` guard `:734-747`, `try/catch` en todos los handlers async. | Bajo | `4807421`, `2cd0ba7` |
+| 5.4 | Procesos (unhandledRejection/uncaughtException) | **Resuelto** | Handlers `:769-775` + graceful shutdown `:753-767`. | Bajo | `4807421`, `2cd0ba7` |
+| 5.5 | Pruebas prácticas HTTP (400/401/403/404/500) | No verificado | Backend respondió 503 en `/health` (cold-start); sin suite de humo. | Alto | N/A |
+| 5.6 | Comportamiento con BD caída | No verificado | `checkDatabaseConnection()` (`db/index.ts:26-35`) y `/health` `:153-160` implementados; no probados contra Neon. | Medio | N/A |
+| 5.7 | Cliente HTTP único en frontend | **Resuelto** | `api-client.js:33-61` intercepta `fetch`, inyecta Bearer, reescribe URLs y redirige en 401; cargado en las 8 vistas. Pendiente migrar los `fetch` inline a un wrapper `api.get/post`. | Bajo | `f49a2cc` |
+| 5.8 | Sesión vencida/401 en frontend | **Resuelto** | `api-client.js:52-58` limpia sesión y redirige; **excepción:** logout manual usa clave `'token'` (`05:1449`, `06:1072`, `07:1391`). | Medio | `f49a2cc` (parcial) |
+| 5.9 | Estados carga/error/vacío | Parcial | Completos en `05`/`07` (placeholders, vacíos, fallback backend); `06` solo `console.error` y genera PDF aunque falle el registro. | Medio | `d1fc021`, `84cc590` (parcial) |
+| 5.10 | ErrorBoundary global/módulo | No verificado | Frontend estático; mecanismo equivalente no evidenciado. | Medio | N/A |
+| 5.11 | Pruebas prácticas frontend | No verificado | Timeout de Vercel en esta sesión; sin automatización. | Medio | N/A |
 
 ### Pilar 6 — Usabilidad (UX/UI) y control de versiones
 
 | ID | Verificación | Estado | Evidencia (ruta:línea) | Riesgo | Corrección aplicada |
 |---|---|---|---|---|---|
-| 6.1 | Landing → selección/login por identidad | Parcial | Estructura de vistas y enlaces presentes (`apps/web/public/index.html`, `02_login_docente.html`, `03_login_mintrabajo.html`, `04_login_arl_sura.html`, `wire_links.js`); flujo completo no probado en ejecución. | Medio | N/A |
-| 6.2 | Login y acceso por rol | Parcial | Login API retorna rol (`apps/api/src/index.ts:166-174`), front redirige según rol/entidad en `apps/web/public/index.html`; sin enforcement server-side. | Alto | N/A (depende de auth backend) |
-| 6.3 | Acceso directo sin sesión / retorno | No verificado | No se evidenciaron guards de ruta del lado cliente/servidor verificables sin ejecución. | Medio | N/A |
-| 6.4 | Cierre de sesión y back | No verificado | Requiere prueba de navegación/sesión. | Medio | N/A |
-| 6.5 | Ruta inexistente (404 UI) | No verificado | App servida como estático (`apps/web/package.json:7`); comportamiento 404 no verificado. | Bajo | N/A |
-| 6.6 | Flujo ARL → MinTrabajo condicionado | No verificado | Lógica de negocio/flujo no validada funcionalmente. | Medio | N/A |
-| 6.7 | Recuperación de contraseña | No verificado | No se identificó flujo completo en revisión rápida; requiere verificación funcional. | Medio | N/A |
-| 6.8 | Accesibilidad básica | No verificado | No se realizaron pruebas de teclado/foco/contraste. | Bajo | N/A |
-| 6.9 | Consistencia visual y responsive | No verificado | Revisión visual no sistemática; mezcla de Tailwind CDN y estilos propios. | Bajo | N/A |
-| 6.10 | Esquema de ramas documentado | Parcial (cumplido con entregable) | `docs/GIT_WORKFLOW.md` creado con estado real, flujo propuesto, convención, plantilla PR y comandos; no hay CI/protección versionada (`.github/` ausente). | Bajo | Entregable generado en esta fase |
+| 6.1 | Landing → selección/login por identidad | **Resuelto** | 4 accesos con `POST /api/users/login` (`index.html:431`, `02:230`, `03:204`, `04:204`) y `setSession`. | Bajo | `f49a2cc` |
+| 6.2 | Login y acceso por rol | **Resuelto** | RBAC server-side `requireRole` (`:94-104`); redirección por rol en `index.html:448-460`. Observación: `02:244` redirige sin validar `data.user.role`. | Medio | `2cd0ba7`, `f49a2cc` |
+| 6.3 | Acceso directo sin sesión / retorno | Parcial | Interceptor 401 global; sin guards de ruta en `05/06/07`. | Medio | `f49a2cc` (parcial) |
+| 6.4 | Cierre de sesión y back | Parcial | `removeItem('token')` en `05:1449`, `06:1072`, `07:1391` no borra `simulsst_token`; JWT queda vigente. | Alto | Pendiente (v2.0) |
+| 6.5 | Ruta inexistente (404 UI) | No verificado | Servidor estático `serve public`; no probado. | Bajo | N/A |
+| 6.6 | Flujo ARL → MinTrabajo condicionado | **Resuelto** | `06:1033-1045` envía a `/api/submissions/upload`; `3eacd85` conecta el envío ARL con el panel docente (`05` consume `/api/submissions`). | Bajo | `3eacd85` |
+| 6.7 | Recuperación de contraseña | No verificado | Sin flujo completo; `passwordResets` modelado en `schema.ts:175-181` pero sin endpoints. | Medio | N/A |
+| 6.8 | Accesibilidad básica | No verificado | Sin pruebas de teclado/foco/contraste. | Bajo | N/A |
+| 6.9 | Consistencia visual y responsive | **Resuelto** | Tailwind compilado + CSS desacoplado por vista; sin CDN externo. | Bajo | `27d2d94` |
+| 6.10 | Esquema de ramas documentado | **Cumple** | `docs/GIT_WORKFLOW.md:1-140`; rama `despliegue` activa. Sin `.github/` ni CI versionado. | Medio | `7673e3a` (parcial) |
 
 ## 5. Cambios aplicados
 
-Commits de corrección crítica en `auditoria/fase-1` (no fusionados, sin push):
+### 5.1 Correcciones críticas de la auditoría inicial (`auditoria/fase-1`)
 
-| Hash | Mensaje | Archivos | Motivo |
-|---|---|---|---|
-| `bbc2a9c` | `fix(config): sanear ejemplos y defaults de credenciales` | `.env.example`, `apps/api/.env.example`, `apps/api/drizzle.config.ts`, `apps/api/src/db/index.ts`, `apps/api/src/index.ts` | Eliminar valores/defaults sensibles y requerir configuración por entorno (`DATABASE_URL`, código docente) para reducir exposición/malas configuraciones. |
-| `eac5b1f` | `fix(security): restringir CORS a orígenes permitidos` | `apps/api/src/index.ts` | Reemplazar CORS abierto (`origin: true` + credenciales) por lista blanca configurable y límites de métodos/cabeceras. |
-| `4807421` | `fix(api): agregar manejo global de errores y 404` | `apps/api/src/index.ts` | Añadir respuesta 404 uniforme, middleware global de errores y handlers de proceso para evitar caídas/respuestas no controladas. |
-| `d1fc021` | `fix(web): retirar datos simulados hardcoded en vistas` | `apps/web/public/05_docente_dashboard.html`, `apps/web/public/06_arl_sura_evaluacion.html`, `apps/web/public/07_mintrabajo_estudiante.html` | Remover métricas/registros/identidades simuladas, `Math.random` y logs de depuración en vistas servidas; mostrar estados vacíos donde no hay datos reales. |
-| `833c68f` | `fix(web): retirar perfil de estudiante simulado en landing` | `apps/web/public/index.html` | Eliminar perfil de estudiante hardcodeado y hidratar desde sesión almacenada cuando exista. |
-| `84cc590` | `fix(web): retirar empresas simuladas en auditoría de licencia` | `apps/web/public/07_mintrabajo_estudiante.html` | Retirar entidades simuladas restantes del selector y tabla de vinculación de licencia. |
+| Hash | Mensaje | Motivo |
+|---|---|---|
+| `bbc2a9c` | `fix(config): sanear ejemplos y defaults de credenciales` | Eliminar secretos/defaults y exigir configuración por entorno. |
+| `eac5b1f` | `fix(security): restringir CORS a orígenes permitidos` | Reemplazar CORS abierto por lista blanca. |
+| `4807421` | `fix(api): agregar manejo global de errores y 404` | 404 uniforme, middleware global y handlers de proceso. |
+| `d1fc021` | `fix(web): retirar datos simulados hardcoded en vistas` | Remover métricas/identidades/`Math.random`, mostrar estados vacíos. |
+| `833c68f` | `fix(web): retirar perfil de estudiante simulado en landing` | Hidratar identidad desde sesión. |
+| `84cc590` | `fix(web): retirar empresas simuladas en auditoría de licencia` | Limpiar selector/tabla de vinculación. |
 
-Otros commits presentes en la rama respecto al historial previo (contexto): `7b7da62`, `0ce4234`, `03b7f1c` (no creados como parte de estos fixes críticos; revisar antes de fusionar).
+### 5.2 Remediación integral, build y funcionalidad (`despliegue`, hasta `3eacd85`)
+
+| Hash | Mensaje | Hallazgos cerrados |
+|---|---|---|
+| `7673e3a` | `docs(audit): agregar informe técnico y flujo git` | 6.10, trazabilidad |
+| `e395a1b` | `fix(web): restaurar carga de estilos Tailwind` | 3.8 |
+| `27d2d94` | `feat(web): migrar a Tailwind local y desacoplar CSS` | 3.8, 6.9 (CDN eliminado) |
+| `c2c8a30` | `docs(audit): actualizar remediacion de Tailwind CSS local` | 1.8 |
+| `7a02ffd` | `build(api): agregar tsconfig.json para compilacion en produccion` | 4.7 (parcial) |
+| `66dac72` | `build(api): habilitar strictNullChecks para inferencia de tipos en drizzle-orm` | 4.7 (parcial) |
+| `d772bb8` | `build(api): eliminar moduleResolution obsoleto en tsconfig.json` | 4.7 (parcial) |
+| `2cd0ba7` | `fix(security): implementar JWT, RBAC, anti-IDOR, zod y rate-limit en API` | **2.8, 2.9, 2.10, 2.11, 2.12, 3.1, 3.4, 5.3, 5.4** |
+| `f49a2cc` | `feat(web): integrar api-client con sesion JWT y endpoints dinamicos` | 5.7, 5.8, 6.1, 6.2 |
+| `1e0d842` | `chore: actualizar package-lock con dependencias de seguridad` | 1.7, 2.16 (parcial) |
+| `1e1be64` | `fix(web): dinamizar usuario autenticado y validar plan de mejoramiento` | 4.2, 6.2 (Art. 28) |
+| `3eacd85` | `feat(arl): conectar envio de evaluacion ARL con panel de calificacion docente` | 4.2, 6.6 (cálculo Res. 0312 / Dec. 768 dinámico) |
 
 ## 6. Pendientes y backlog
 
-| Prioridad | Hallazgo | Riesgo | Esfuerzo | Propuesta |
+| Prioridad | Hallazgo | Estado | Esfuerzo | Propuesta |
 |---|---|---|---|---|
-| Alta | Autenticación/autorización/RBAC y control de propiedad (IDOR) en todos los endpoints sensibles | Alto | L | Implementar JWT/sesión segura, middleware `auth`/`requireRole`, y verificación de propiedad por recurso (`apps/api/src/index.ts:49,283,319,330,401,425,505,550`); adaptar frontend a envío de credenciales/tokens y manejo 401/403. |
-| Alta | Validación robusta de entradas y endurecimiento de API | Alto | M | Incorporar `zod` (o equivalente) por endpoint, esquemas de body/query/params, sanitización, `rate-limit` en login/registro y forma de error uniforme `{ code, message, details? }`. |
-| Alta | Tailwind CDN en vistas servidas y estrategia de build frontend | Medio | M | Eliminar CDN (`apps/web/public/index.html:8`, `apps/web/public/08_registro_usuarios.html:9`), integrar Tailwind compilado/build reproducible y gestionar assets/local fonts según necesidad. |
-| Media | Cierre ordenado de pool y manejo de señales/DB caída | Medio | S | Añadir `SIGTERM/SIGINT` con `pool.end()` y respuestas controladas ante indisponibilidad de BD; validar con pruebas. |
-| Media | Calidad automatizada y configuración TypeScript | Medio | M | Agregar `tsconfig.json` en `apps/api`, scripts `lint/typecheck/test/build` en workspaces, y pipeline CI (`.github/workflows`) con checks mínimos. |
+| Alta | Proteger `/api/reports/certificate/pdf` con `requireAuth` y esquema Zod | **Pendiente** | S | Exigir sesión, derivar nombre/nota de `req.user` o de `studentSubmissions`, eliminar defaults `88`/`Metalmecánica` (`index.ts:310-316`). |
+| Alta | Consolidar el cálculo normativo en backend (Res. 0312 / Dec. 768) | **Parcial** | L | Usar las tablas `standards`, `standardGroups`, `evaluations`, `evaluationItems` ya modeladas (`schema.ts:63-105`) como fuente de verdad; hoy el front calcula pesos y clases por separado. |
+| Alta | Unificar claves de logout y persistir sesión de forma segura | **Pendiente** | S | Reemplazar `removeItem('token')` por `window.SimulSST.clearSession()` (`05:1449`, `06:1072`, `07:1391`); evaluar cookie `httpOnly` + `secure` (`COOKIE_SECURE` hoy sin uso). |
+| Media | CI/CD y toolchain de calidad | **Pendiente** | M | `.github/workflows` con `lint`, `typecheck`, `test`, `build:css` y `tsc`; scripts en la raíz; generar `dist/` en pipeline en vez de versionarlo. |
+| Media | Forma de error uniforme y *rate-limit* en escrituras | **Pendiente** | S | `{code,message,details?}` en todos los handlers; aplicar limiters a upload, criteria y risk-classification. |
+| Media | Separar código de registro de administrador | **Pendiente** | S | `registerSchema` admite `administrador` con el mismo `TEACHER_REGISTRATION_CODE` (`index.ts:112,192-207`); exigir canal/código distinto. |
+| Media | Migraciones/seed ejecutables | **Pendiente** | S | Crear `src/db/migrate.ts` y `src/db/seed.ts` referenciados en `apps/api/package.json:11-12`. |
+| Baja | N+1/paginación, índices y EXPLAIN | **Pendiente** | M | Reemplazar `submissionsList.find()` (`:630-647`), paginación por cursor y índices en `student_email`/`created_at`. |
+| Baja | Limpieza de prototipo | **Pendiente** | S | Eliminar `wire_links.js`, enlaces a `01_landing_selector.html`, botones Google sin handler y KPIs/datos demo residuales. |
 
-Hallazgos adicionales diferidos (rendimiento/UX/refactor): N+1/paginación real (`apps/api/src/index.ts:508-523`), transacciones atómicas (`:562-599`), cliente HTTP único y estados UI completos, revisión de enlaces/accesibilidad, índices/EXPLAIN, modularización de API, resolución de divergencia de `origin/Camila`.
+**Hallazgos cerrados que ya no requieren seguimiento:** auth JWT + bcrypt, RBAC, anti-IDOR, bcrypt salt, CORS, Helmet, límite de body, rate-limit de autenticación, Zod en escrituras, transacción atómica, graceful shutdown, manejo global de errores/404, Tailwind compilado, cliente HTTP único, identidad dinámica, validación del Plan de Mejoramiento Art. 28, cálculo dinámico de Estándares Mínimos y flujo ARL → Docente.
 
 ## 7. Conclusiones técnicas
 
-1. **Fortalezas verificadas:** monorepo con separación física `apps/api` y `apps/web` (`package.json:1-23`); uso de Drizzle ORM y esquema tipado con PK/unique/timestamps en varias tablas (`apps/api/src/db/schema.ts:15-27,30-50,63-78`); hash de contraseñas con bcrypt (`apps/api/src/index.ts:118-120,156`); migración versionada (`apps/api/drizzle/0000_rare_penance.sql`) y endpoint de salud (`apps/api/src/index.ts:39-46`).
-2. **Limitaciones del prototipo:** implementación difiere del stack esperado (HTML estático servido con `serve`, sin React/Vite/src ni pipeline de build), API monolítica, ausencia de lint/typecheck/tests configurados (`apps/api/package.json:6-12`, `apps/web/package.json:6-9`), y verificación funcional limitada por falta de BD/ejecución.
-3. **Estado de seguridad:** se corrigieron CORS permisivo con credenciales, defaults/ejemplos sensibles y se añadió manejo global básico de errores (`bbc2a9c`, `eac5b1f`, `4807421`). Persisten controles esenciales abiertos: autenticación/autorización/IDOR, validación robusta, rate limiting y hardening integral de endpoints (`apps/api/src/index.ts:49,330,401,505,550`).
-4. **Trabajo futuro priorizado (top 5):** (1) Auth/RBAC/IDOR, (2) validación zod + rate limit + errores uniformes, (3) eliminar Tailwind CDN e incorporar build, (4) cierre ordenado de pool y resiliencia BD, (5) toolchain de calidad y CI.
-5. **Alineación con prácticas de desarrollo seguro y ramas:** se reforzó revisión de configuración/secrets, restricciones CORS y manejo de errores; se documentó flujo de ramas/PR/commits en `docs/GIT_WORKFLOW.md`. Falta implementar controles de acceso y automatización de verificación en CI.
-6. **Declaración de alcance:** esta auditoría fue asistida por un agente y **requiere revisión humana** de los hallazgos críticos y de los commits en `auditoria/fase-1` antes de fusionarlos.
+1. **Fortalezas verificadas:** autenticación y autorización completas en servidor (`:17-104`, `:163`, `:399`, `:613`); anti-IDOR por identidad de sesión (`:457`, `:524`, `:549`, `:667`); validación Zod y transacción atómica (`:107-150`, `:679-717`); resiliencia de proceso (`:730-775`); separación física de apps y despliegue en tres entornos productivos declarados; esquema Drizzle rico (17 tablas) listo para migrar la lógica normativa al backend.
+2. **Estado de seguridad:** los 4 hallazgos críticos originales (auth/rol, IDOR, CORS abierto, errores no controlados) están remediados; queda una excepción acotada en el endpoint PDF y decisiones de hardening (XSS por `localStorage`, separación del código de administrador).
+3. **Flujo normativo:** el cálculo de Estándares Mínimos (Res. 0312) y la clasificación por actividad (Dec. 768) son dinámicos y el resultado ARL llega al panel docente; persiste divergencia de clase de riesgo entre vistas (III en `06:28`, V en `05:715` vs IV en `07` y API) y ponderaciones PHVA incompatibles entre `05` y `06`.
+4. **Entrega:** el proyecto es funcional y desplegado (Vercel / Render / Neon), pero sin CI versionado, sin scripts de calidad y sin migraciones ejecutables; la verificación HTTP en esta sesión no fue concluyente (503/timeout).
+5. **Madurez:** **77/100**, con seguridad como dimensión más fuerte (85) y arquitectura/coherencia normativa como las más mejorables (68/72). Detalle en la sección final.
+
+## Deuda Técnica y Hoja de Ruta v2.0
+
+### Evaluación cuantitativa de respaldo (2026-11-20)
+
+| # | Dimensión | Peso | Puntaje | Ponderado | Soporte principal |
+|---|---|---:|---:|---:|---|
+| 1 | Seguridad y control de acceso | 30% | 85 | 25.5 | JWT, RBAC, anti-IDOR, bcrypt, CORS, Helmet, rate-limit; excepción PDF |
+| 2 | Validación e integridad transaccional | 20% | 82 | 16.4 | Zod ×5, `db.transaction`; excepción PDF y `mustChangePassword` |
+| 3 | Arquitectura y desacoplamiento | 15% | 68 | 10.2 | Workspaces + `api-client`; API monolítica y BD subutilizada |
+| 4 | Coherencia funcional y lógica SST | 20% | 72 | 14.4 | Flujo ARL→Docente y MinTrabajo consistentes; clases/ponderaciones divergentes |
+| 5 | Preparación para despliegue | 15% | 70 | 10.5 | Graceful shutdown y fail-fast; sin CI ni config versionada |
+| | **Total** | **100%** | | **77.0** | Mayormente remediado |
+
+### Deuda técnica priorizada
+
+| Ítem | Evidencia | Impacto | Acción propuesta v2.0 |
+|---|---|---|---|
+| PDF público y no validado | `apps/api/src/index.ts:310-316` (sin `requireAuth`, `score` por query, defaults `88`/empresa) | Alto — emisión de certificados con datos arbitrarios | `requireAuth` + esquema Zod + resolver los datos desde `studentSubmissions`/`req.user`. |
+| Logout no efectivo | `apps/web/public/05_docente_dashboard.html:1449`, `06_arl_sura_evaluacion.html:1072`, `07_mintrabajo_estudiante.html:1391` | Alto — JWT permanece en `localStorage` | Centralizar en `SimulSST.clearSession()`; migrar a cookie `httpOnly`/`secure`. |
+| Cálculo normativo en el cliente | Pesos en `05:569-573` vs `06:185,389,514,582`; 7/8/21 estándares por vista vs 60 en backend `:699-714` | Alto — incoherencia de criterios y resultados | Unificar en una regla server-side apoyada en `standards`/`standardGroups`/`evaluations`; exponer un único endpoint de calificación. |
+| Ausencia de CI/CD | Sin `.github/`; `package.json:9-15` sin `lint/typecheck/test/build` | Medio — sin verificación automática | Pipeline con `tsc --noEmit`, lint, tests de humo 401/403/IDOR, `build:css`; generar `dist/` en el pipeline. |
+| Escalada de rol en registro | `index.ts:112,192-207` (`administrador` usa el mismo código docente) | Medio | Código/invitación independiente para administradores y auditoría del rol asignado. |
+| Errores y límites heterogéneos | `{error}` vs `{code,message}` vs `{code,error}` (`:68`, `:734-747`); rate-limit solo en auth | Medio | Contrato único `{code,message,details?}` y limiters en todas las escrituras. |
+| Esquema no operativo | `schema.ts:63-153` sin endpoints; `migrate.ts`/`seed.ts` ausentes | Medio | Implementar migración/seed y migrar entregas y planes de mejora a tablas reales. |
+| Deuda de rendimiento y prototipo | N+1 en `:630-647`, sin índices, `wire_links.js`, enlaces a `01_landing_selector.html`, KPIs demo | Bajo | Paginación, índices/EXPLAIN, limpieza de artefactos Stitch y datos de ejemplo. |
+
+### Sugerencia de secuenciación
+1. ** Sprint 1 (hardening):** PDF autenticado, logout unificado, código de administrador separado, forma de error uniforme.
+2. **Sprint 2 (núcleo normativo):** motor de estándares en backend usando el esquema existente y una sola fuente de verdad para clases de riesgo y ponderaciones PHVA.
+3. **Sprint 3 (entrega):** CI/CD con quality gates, migraciones/seed ejecutables, `dist/` generado en build y pruebas de humo contra Vercel/Render/Neon.
 
 ## Anexos
 
 ### A. Comandos ejecutados (resumen, secretos ocultos)
-- `git status --short` → rama `auditoria/fase-1`, `Plan_Auditoria.md` no rastreado durante el trabajo.
-- `git branch -a`, `git log --oneline -n 20`, `git rev-parse HEAD` → baseline `5f01d38`, correcciones hasta `84cc590`.
-- `git rev-list --left-right --count main...Natalia` → `0 2`; `main...despliegue` → `0 0`; `main...origin/Natalia` → `0 2`; `main...origin/Camila` → `4 0`.
-- `git ls-files` / conteos → 52 archivos (html/ts/js/sql/json/md) rastreados en subconjunto consultado; 8 vistas en `apps/web/public/`.
-- `git check-ignore -v .env .agents/mcp_config.json apps/api/.env` → ignorados por `.gitignore:3,5`.
-- `git ls-files .env .agents/mcp_config.json 'apps/*/.env'` → vacío.
-- `git log --all -- .env .agents/mcp_config.json 'apps/*/.env'` → vacío.
-- `npm --prefix apps/api run build` → invocación `tsc` sin `tsconfig.json` (no verificable como build completo).
-- `npm --prefix apps/web run build`, `npm run lint/typecheck` (root/api/web) → scripts ausentes.
-- `node -v` → `v22.18.0`; `npm -v` → `10.9.3`.
+- `git branch --show-current` → `despliegue`; `git status --short` → sin cambios previos.
+- `git rev-parse --short HEAD` → `3eacd85`; `git rev-parse HEAD` → `3eacd85b3a8d44aa4f3104d4ff8c26bb335a3b14`.
+- `git log --oneline -20`, `git show --stat 2cd0ba7`, `git diff --stat 84cc590..HEAD` → 33 archivos, +15.266/−6.448 líneas desde la auditoría inicial.
+- `git ls-files apps/api/src/db` → solo `index.ts` y `schema.ts` (sin migrate/seed); `git ls-files apps/api/dist` → 3 `.js` versionados; sin `.github/`.
+- `webfetch https://simulador-sst.onrender.com/health` → 503 (cold-start); `webfetch https://simuladorsst-public.vercel.app/` → timeout.
+- Sin `npm ci/install`, `build`, `lint`, `typecheck`, `npm audit`, `gitleaks`, `depcheck` ni `madge` en esta sesión.
 
-### B. Tabla de endpoints (evidencia estática)
+### B. Tabla de endpoints (evidencia estática, rama `despliegue` @ `3eacd85`)
 
-| Método | Ruta | Handler/ubicación | Guarda auth/rol | Observaciones |
+| Método | Ruta | Handler | Guarda auth/rol | Observaciones |
 |---|---|---|---|---|
-| GET | `/health` | `apps/api/src/index.ts:39` | No | Estado de BD |
-| GET | `/api/users` | `apps/api/src/index.ts:49` | No | Lista usuarios (datos sensibles potenciales) |
-| POST | `/api/users/register` | `apps/api/src/index.ts:68` | No (código docente por entorno) | Crea usuario, hash bcrypt |
-| POST | `/api/users/login` | `apps/api/src/index.ts:140` | No | Valida credenciales, sin emisión de token/sesión |
-| GET | `/api/reports/certificate/pdf` | `apps/api/src/index.ts:188` | No | Genera PDF con parámetros de query |
-| POST | `/api/cases/criteria` | `apps/api/src/index.ts:283` | No | Crea criterios de simulación |
-| GET | `/api/cases/criteria` | `apps/api/src/index.ts:319` | No | Lista criterios |
-| POST | `/api/submissions/upload` | `apps/api/src/index.ts:330` | No | Registra entrega/evaluación automática |
-| GET | `/api/submissions` | `apps/api/src/index.ts:401` | No | Lista entregas, filtro por email en query |
-| GET | `/api/evaluations/summary` | `apps/api/src/index.ts:425` | No | Resumen por email (query) |
-| GET | `/api/students` | `apps/api/src/index.ts:505` | No | Lista estudiantes enriquecida |
-| POST | `/api/evaluations/risk-classification` | `apps/api/src/index.ts:550` | No | Registra clasificación/evento/submission |
+| GET | `/health` | `index.ts:153` | Pública | Estado de Neon PostgreSQL |
+| GET | `/api/users` | `index.ts:163` | `requireAuth` + `requireRole(docente, administrador)` | Sin `passwordHash` en proyección |
+| POST | `/api/users/register` | `index.ts:183` | `authLimiter` + código docente | Zod; emite JWT |
+| POST | `/api/users/login` | `index.ts:257` | `authLimiter` | bcrypt; JWT 8 h; mensaje genérico 401 |
+| GET | `/api/reports/certificate/pdf` | `index.ts:310` | **Ninguna** | Pendiente v2.0 (parámetros por query) |
+| POST | `/api/cases/criteria` | `index.ts:399` | `requireAuth` + `requireRole(docente, administrador)` | Zod |
+| GET | `/api/cases/criteria` | `index.ts:436` | `requireAuth` | Zod N/A (solo lectura) |
+| POST | `/api/submissions/upload` | `index.ts:447` | `requireAuth` | Zod; email forzado a sesión para estudiantes |
+| GET | `/api/submissions` | `index.ts:520` | `requireAuth` | Anti-IDOR por email de sesión |
+| GET | `/api/evaluations/summary` | `index.ts:545` | `requireAuth` | Anti-IDOR; cálculo de valoración Res. 0312 |
+| GET | `/api/students` | `index.ts:613` | `requireAuth` + `requireRole(docente, administrador)` | Enriquecimiento N+1 pendiente |
+| POST | `/api/evaluations/risk-classification` | `index.ts:657` | `requireAuth` | Zod + transacción; realimentación Dec. 768 |
 
-### C. Matriz endpoint × rol (esperado vs real)
+### C. Matriz endpoint × rol (estado real @ `3eacd85`)
 
-| Endpoint | Docente | Estudiante | ARL/MinTrabajo (portal) | Real observado |
+| Endpoint | Docente | Estudiante | ARL/MinTrabajo (portal) | Implementado |
 |---|---|---|---|---|
-| `/api/users` GET | Esperado (gestión) | No esperado | No esperado | Accesible sin auth (`apps/api/src/index.ts:49`) |
-| `/api/users/register` POST | Según política | Según política | No esperado | Accesible sin auth; código docente requerido solo para rol docente/admin (`:68-106`) |
-| `/api/users/login` POST | Sí | Sí | Según diseño | Accesible sin auth (`:140`) |
-| `/api/cases/criteria` POST/GET | Sí | Parcial (lectura) | No esperado | Sin auth (`:283,:319`) |
-| `/api/submissions*`, `/api/evaluations/summary`, `/api/students` | Sí (supervisión) | Solo propios datos | No esperado | Sin auth ni verificación de propiedad (`:330,:401,:425,:505`) |
-| `/api/evaluations/risk-classification` POST | No | Sí (propio) | Contexto portal | Sin auth ni verificación de propiedad (`:550`) |
-| `/api/reports/certificate/pdf` GET | Sí | Sí (propio) | Según diseño | Sin auth, parámetros controlados por query (`:188`) |
+| `/api/users` GET | Sí | No | No | `requireRole` en servidor |
+| `/api/users/register` POST | Código institucional | Permitido | No esperado | Código + Zod; administrador comparte código (mejora v2.0) |
+| `/api/users/login` POST | Sí | Sí | Sí | `authLimiter` + bcrypt + JWT |
+| `/api/cases/criteria` POST/GET | Sí | Solo lectura | No | POST con rol; GET con auth |
+| `/api/submissions*` y `/api/evaluations/summary` | Supervisión | Solo propios datos | No | Anti-IDOR por `req.user.email` |
+| `/api/evaluations/risk-classification` POST | Contexto portal | Propio | Contexto portal | `requireAuth` + transacción |
+| `/api/reports/certificate/pdf` GET | Sí | Propio | Según diseño | **Sin guard** (deuda v2.0) |
 
-### D. Tamaños de bundle
-- **No verificado / no aplica:** `apps/web` es frontend estático servido con `serve public` (`apps/web/package.json:6-9`), sin pipeline Vite/build ni artefactos `dist/` en el repositorio. Se detecta carga de Tailwind por CDN en `apps/web/public/index.html:8` y `apps/web/public/08_registro_usuarios.html:9`.
+### D. Recursos y artefactos
+- Frontend servido como estático por `serve public` (`apps/web/package.json:8-9`); sin bundle Vite.
+- `apps/web/public/output.css` ≈ 58 KB, `logo.jpeg` ≈ 103 KB; sin medición de producción.
+- Tailwind v4 local: `apps/web/src/input.css` + `@tailwindcss/cli`; sin CDN en las 8 vistas.
 
 ### E. Resultados `EXPLAIN (ANALYZE, BUFFERS)`
-- **No verificado:** base de datos no disponible/ejecución fuera de alcance en esta auditoría.
+- **No verificado:** sin acceso a Neon PostgreSQL en esta sesión.
 
 ### F. Pruebas de códigos HTTP (API)
-- **No verificado:** no se ejecutaron peticiones `curl`/humo (400/401/403/404/500, BD caída) por ausencia de entorno de ejecución controlado. Se añadió manejador 404 y middleware global de error en `apps/api/src/index.ts:624-639` como corrección preventiva.
+- **No verificado:** `/health` devolvió 503 (cold-start de Render) y el front timeout; sin suite de humo 400/401/403/404/500. El manejo global está implementado en `index.ts:730-747` y es candidato a quality gate del Sprint 3.
