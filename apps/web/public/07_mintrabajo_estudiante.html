@@ -26,8 +26,7 @@
       <div class="entity-selector-box">
         <span class="entity-label">🏢 Empresa Activa:</span>
         <select id="entitySelector" class="entity-select" onchange="cambiarEntidad(this.value)">
-          <option value="Empresa Metalmecánica S.A. (NIT: 900.823.102-4)">Metalmecánica S.A. (NIT: 900.823.102-4)
-          </option>
+          <option value="">Cargando empresas activas...</option>
         </select>
       </div>
 
@@ -136,7 +135,7 @@
       <nav class="breadcrumb">
         <a href="#inicio" class="">Inicio SGRL</a>
         <span class="">/</span>
-        <span id="currentBreadcrumbEmpresa" class="">Empresa Metalmecánica S.A.</span>
+        <span id="currentBreadcrumbEmpresa" class="">Cargando empresa activa...</span>
         <span class="">/</span>
         <span id="currentBreadcrumbModulo" style="font-weight: 700; color: #1e293b;" class="">Registro de Responsable
           Técnico</span>
@@ -270,23 +269,22 @@
           <div class="form-grid-2">
             <div class="form-group">
               <label class="form-label">Razón Social y NIT</label>
-              <input type="text" class="form-input" id="califEmpresa"
-                value="Empresa Metalmecánica S.A. (NIT: 900.823.102-4)" readonly=""
+              <input type="text" class="form-input" id="califEmpresa" value="" readonly=""
                 style="background: #f8fafc; font-weight: 600;">
             </div>
             <div class="form-group">
               <label class="form-label">Actividad Económica Principal</label>
-              <input type="text" class="form-input" value="2592 - Tratamiento y revestimiento de metales" readonly=""
+              <input type="text" class="form-input" id="califCiiu" value="" readonly=""
                 style="background: #f8fafc;">
             </div>
             <div class="form-group">
               <label class="form-label">Número de Trabajadores en Nómina</label>
-              <input type="text" class="form-input" value="128 Colaboradores directos e indirectos" readonly=""
+              <input type="text" class="form-input" id="califTrabajadores" value="" readonly=""
                 style="background: #f8fafc;">
             </div>
             <div class="form-group">
               <label class="form-label">Sede de Operación</label>
-              <input type="text" class="form-input" value="Planta Principal • Zona Industrial Cazucá" readonly=""
+              <input type="text" class="form-input" id="califSede" value="" readonly=""
                 style="background: #f8fafc;">
             </div>
           </div>
@@ -314,8 +312,9 @@
                 </span>
               </div>
               <p style="font-size: 12px; color: #64748b; margin-bottom: 14px; line-height: 1.4;">
-                Con base en la actividad económica (CIIU 2592) y las condiciones de planta, determine activamente la
-                clase de riesgo aplicable según la tabla de cotización del Sistema General de Riesgos Laborales.
+                Con base en la actividad económica (<span id="riesgoCiiuReferencia">CIIU en carga</span>) y las condiciones
+                de planta de la empresa activa, determine activamente la clase de riesgo aplicable según la tabla de
+                cotización del Sistema General de Riesgos Laborales.
               </p>
 
               <!-- Tarjetas interactivas de selección I a V -->
@@ -372,7 +371,7 @@
             <div class="form-grid-2">
               <div class="form-group">
                 <label class="form-label">Periodo Anual a Evaluar <span class="required">*</span></label>
-                <select class="form-select" id="periodoEvaluar" required="">
+                <select class="form-select" id="periodoEvaluar" onchange="actualizarPeriodoCertificado(this.value)" required="">
                   <option value="2025" selected="">Año 2025 (Periodo Fiscal Ordinario)</option>
                   <option value="2024">Año 2024 (Consolidado)</option>
                   <option value="2026">Año 2026 (En Proyección)</option>
@@ -399,6 +398,30 @@
                   </div>
                 </label>
               </div>
+            </div>
+
+            <div class="card" style="margin-top: 20px;">
+              <div class="card-header">
+                <div class="card-header-title">
+                  <span class="">✅ Verificación de Estándares Mínimos (Res. 0312 de 2019)</span>
+                </div>
+                <span class="badge-pill badge-pill-blue">Ponderación dinámica</span>
+              </div>
+              <p style="font-size: 12px; color: #64748b; margin: 16px 20px 8px; line-height: 1.5;">
+                Registre el resultado de cada ítem. Los ítems marcados como <strong>No aplica</strong> se excluyen del
+                denominador y la clasificación ARL se valida contra el CIIU de la empresa activa al consolidar.
+              </p>
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Ítem</th>
+                    <th>Estándar mínimo verificado</th>
+                    <th>Peso</th>
+                    <th>Resultado de la verificación</th>
+                  </tr>
+                </thead>
+                <tbody id="estandaresTableBody"></tbody>
+              </table>
             </div>
 
             <div class="actions-row">
@@ -435,12 +458,13 @@
 
             <div
               style="max-width: 550px; margin: 0 auto 24px; text-align: left; font-size: 13px; line-height: 1.8; color: #334155; background: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0;">
-              <div><strong>Organización:</strong> <span id="certEmpresa" class="">Empresa Metalmecánica S.A.</span>
-              </div>
-              <div class=""><strong>NIT:</strong> 900.823.102-4</div>
-              <div><strong>Periodo Evaluado:</strong> <span id="certPeriodo" class="">2025</span></div>
+              <div><strong>Organización:</strong> <span id="certEmpresa" class="">Cargando empresa activa...</span></div>
+              <div><strong>NIT:</strong> <span id="certNit">-</span></div>
+              <div><strong>Periodo Evaluado:</strong> <span id="certPeriodo">-</span></div>
               <div><strong>Responsable de Diligenciamiento:</strong> <span id="certResponsable">Sin evaluar</span></div>
               <div><strong>Fecha de Certificación:</strong> <span id="certFecha">Pendiente de evaluación</span></div>
+              <div><strong>Clasificación ARL (Dec. 768/2022):</strong> <span id="certClasificacionArl" style="font-weight: 700; color: #64748b;">Pendiente de validación</span></div>
+              <div id="certObservacionNormativa" style="display: none; margin-top: 6px; padding: 8px 10px; border-radius: 6px; font-size: 12px; line-height: 1.5;"></div>
               <div><strong>Estado de Valoración Legal:</strong> <span id="certEstadoLegal" style="color: #64748b; font-weight: 700;">Pendiente por evaluar</span></div>
             </div>
 
@@ -449,7 +473,7 @@
                 onclick="descargarCertificadoDinamico()">
                 <span class="">📄 Descargar Certificado Oficial en PDF</span>
               </button>
-              <button class="btn btn-outline" onclick="mostrarNotificacion('Evaluación y constancia sincronizada en el panel docente en tiempo real.')">
+              <button class="btn btn-outline" onclick="enviarAuditoriaDocente()">
                 <span class="">✉️ Enviar a Auditoría Docente</span>
               </button>
             </div>
@@ -656,6 +680,72 @@
       email: 'estudiante@simulsst.edu.co'
     };
     let evaluacionActual = null;
+    let empresaActiva = null;
+    let consolidadoLocal = null;
+
+    const EMPRESAS_ACTIVAS = [
+      {
+        id: 'metal-900823102-4',
+        nombre: 'Metalmecánica S.A.',
+        nit: '900.823.102-4',
+        ciiu: '2592 - Tratamiento y revestimiento de metales',
+        trabajadores: '128 Colaboradores directos e indirectos',
+        sede: 'Planta Principal • Zona Industrial Cazucá',
+        riesgoEsperado: 'IV',
+        riesgoDetalle: 'Clase IV (Riesgo Alto)'
+      },
+      {
+        id: 'distribuidora-860034992-1',
+        nombre: 'Distribuidora del Oriente Ltda.',
+        nit: '860.034.992-1',
+        ciiu: '4631 - Comercio al por mayor de alimentos y bebidas',
+        trabajadores: '42 Colaboradores directos',
+        sede: 'Central Logística • Barranquilla',
+        riesgoEsperado: 'I',
+        riesgoDetalle: 'Clase I (Riesgo Mínimo)'
+      },
+      {
+        id: 'agropecuaria-901341229-8',
+        nombre: 'Agropecuaria El Porvenir S.A.',
+        nit: '901.341.229-8',
+        ciiu: '0111 - Cultivo de cereales',
+        trabajadores: '65 Colaboradores directos',
+        sede: 'Finca El Porvenir • Villavicencio',
+        riesgoEsperado: 'II',
+        riesgoDetalle: 'Clase II (Riesgo Bajo)'
+      },
+      {
+        id: 'alimentos-899999123-7',
+        nombre: 'Alimentos La Sabana S.A.S.',
+        nit: '899.999.123-7',
+        ciiu: '1011 - Elaboración de productos alimenticios',
+        trabajadores: '96 Colaboradores directos',
+        sede: 'Planta de Producción • Mosquera',
+        riesgoEsperado: 'III',
+        riesgoDetalle: 'Clase III (Riesgo Medio)'
+      },
+      {
+        id: 'constructora-901555778-3',
+        nombre: 'Constructora Vía Andina S.A.S.',
+        nit: '901.555.778-3',
+        ciiu: '4311 - Demolición y preparación del terreno',
+        trabajadores: '154 Colaboradores directos',
+        sede: 'Obra Vía Andina • Soacha',
+        riesgoEsperado: 'V',
+        riesgoDetalle: 'Clase V (Riesgo Máximo)'
+      }
+    ];
+
+    const ESTANDARES_MINIMOS = [
+      { codigo: '1.1.1', titulo: 'Responsable del SG-SST designado con licencia vigente', peso: 15 },
+      { codigo: '1.2.1', titulo: 'Política de seguridad y salud documentada y divulgada', peso: 10 },
+      { codigo: '2.1.1', titulo: 'Plan anual de trabajo con metas, recursos y responsables', peso: 15 },
+      { codigo: '2.4.1', titulo: 'Inducción y capacitación inicial al personal', peso: 10 },
+      { codigo: '3.1.1', titulo: 'Identificación y valoración de peligros y riesgos', peso: 15 },
+      { codigo: '3.2.1', titulo: 'Controles operativos y procedimientos de trabajo seguro', peso: 15 },
+      { codigo: '4.1.1', titulo: 'Seguimiento médico y gestión de la salud del personal', peso: 10 },
+      { codigo: '7.1.1', titulo: 'Auditorías internas, acciones correctivas y mejora continua', peso: 10 }
+    ];
 
     // Inicializar sesión y datos dinámicos al cargar
     function inicializarSesionUsuario() {
@@ -685,19 +775,221 @@
         topAvatar.textContent = initials;
       }
 
-      // Cargar consulta dinámica de estándares desde PostgreSQL
+      cargarSelectorEmpresas();
       consultarEvaluacionDinamica();
     }
 
-    // Consulta en PostgreSQL el consolidado de la calificación de estándares mínimos
-    async function consultarEvaluacionDinamica() {
-      const email = sesionUsuarioActual.email;
-      const certResp = document.getElementById('certResponsable');
+    function formatearFecha(valor) {
+      const fecha = valor ? new Date(valor) : new Date();
+      if (Number.isNaN(fecha.getTime())) {
+        return new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
+      }
+      return fecha.toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    function obtenerClaseRoman(texto) {
+      const coincidencia = String(texto || '').match(/\bClase\s+(IV|III|II|I|V)\b/i);
+      return coincidencia ? coincidencia[1].toUpperCase() : '';
+    }
+
+    function obtenerValoracion(score) {
+      if (score > 85) {
+        return {
+          etiqueta: 'ACEPTABLE',
+          color: '#16A34A',
+          estado: 'Aceptable (Mantener Calificación y Evidencias)'
+        };
+      }
+      if (score >= 60) {
+        return {
+          etiqueta: 'MODERADO',
+          color: '#D97706',
+          estado: 'Moderadamente Aceptable (Plan de Mejora a 6 Meses)'
+        };
+      }
+      return {
+        etiqueta: 'CRÍTICO',
+        color: '#DC2626',
+        estado: 'Crítico (Plan de Mejoramiento Inmediato - Seguimiento MinTrabajo)'
+      };
+    }
+
+    function renderizarCertificado(score, opciones = {}) {
       const certScore = document.getElementById('certScore');
       const certScoreLabel = document.getElementById('certScoreLabel');
       const certScoreCircle = document.getElementById('certScoreCircle');
       const certEstadoLegal = document.getElementById('certEstadoLegal');
       const certFecha = document.getElementById('certFecha');
+      const certEmpresa = document.getElementById('certEmpresa');
+      const certNit = document.getElementById('certNit');
+      const certPeriodo = document.getElementById('certPeriodo');
+      const certResponsable = document.getElementById('certResponsable');
+      const certClasificacionArl = document.getElementById('certClasificacionArl');
+      const certObservacion = document.getElementById('certObservacionNormativa');
+
+      if (certEmpresa) certEmpresa.textContent = empresaActiva?.nombre || 'Sin empresa activa';
+      if (certNit) certNit.textContent = empresaActiva?.nit || '-';
+      if (certPeriodo) certPeriodo.textContent = document.getElementById('periodoEvaluar')?.value || '-';
+      if (certResponsable) certResponsable.textContent = opciones.responsable || sesionUsuarioActual.nombre;
+
+      if (opciones.pendiente) {
+        if (certScore) certScore.textContent = '0%';
+        if (certScoreLabel) certScoreLabel.textContent = 'Pendiente';
+        if (certScoreCircle) {
+          certScoreCircle.style.background = '#ffffff';
+          certScoreCircle.style.borderColor = '#94a3b8';
+          certScoreCircle.style.color = '#64748b';
+        }
+        if (certEstadoLegal) {
+          certEstadoLegal.textContent = opciones.mensajePendiente || 'Pendiente por evaluar';
+          certEstadoLegal.style.color = '#64748b';
+        }
+        if (certFecha) certFecha.textContent = 'Pendiente de radicación';
+      } else {
+        const valoracion = obtenerValoracion(Number(score));
+        if (certScore) certScore.textContent = `${score}%`;
+        if (certScoreLabel) certScoreLabel.textContent = valoracion.etiqueta;
+        if (certScoreCircle) {
+          certScoreCircle.style.background = '#ffffff';
+          certScoreCircle.style.borderColor = valoracion.color;
+          certScoreCircle.style.color = valoracion.color;
+        }
+        if (certEstadoLegal) {
+          certEstadoLegal.textContent = valoracion.estado;
+          certEstadoLegal.style.color = valoracion.color;
+        }
+        if (certFecha) certFecha.textContent = formatearFecha(opciones.fecha);
+      }
+
+      const consolidado = opciones.consolidado;
+      if (certClasificacionArl) {
+        if (consolidado) {
+          const ciiuCorto = String(consolidado.ciiu || '').split(' - ')[0];
+          certClasificacionArl.textContent = consolidado.arlCorrecta
+            ? `Correcta · ${consolidado.claseSeleccionadaTexto} conforme al CIIU ${ciiuCorto}`
+            : `Inconsistente · ${consolidado.claseSeleccionadaTexto} frente al CIIU ${ciiuCorto} (requiere ${consolidado.claseEsperada})`;
+          certClasificacionArl.style.color = consolidado.arlCorrecta ? '#16A34A' : '#DC2626';
+        } else {
+          certClasificacionArl.textContent = 'Pendiente de validación';
+          certClasificacionArl.style.color = '#64748b';
+        }
+      }
+      if (certObservacion) {
+        if (consolidado) {
+          const ciiuCorto = String(consolidado.ciiu || '').split(' - ')[0];
+          certObservacion.style.display = 'block';
+          certObservacion.style.background = consolidado.arlCorrecta ? '#f0fdf4' : '#fef2f2';
+          certObservacion.style.color = consolidado.arlCorrecta ? '#15803d' : '#b91c1c';
+          certObservacion.textContent = consolidado.arlCorrecta
+            ? `Observación normativa: clasificación ARL conforme al CIIU ${ciiuCorto}. Puntaje ponderado ${consolidado.base}% sin penalización.`
+            : `Observación normativa: para el CIIU ${ciiuCorto} corresponde Clase ${consolidado.claseEsperada}. Se restaron ${consolidado.penalizacion} puntos porcentuales sobre un puntaje ponderado de ${consolidado.base}%.`;
+        } else {
+          certObservacion.style.display = 'none';
+          certObservacion.textContent = '';
+        }
+      }
+    }
+
+    function renderizarCertificadoPendiente(mensaje) {
+      renderizarCertificado(0, { pendiente: true, mensajePendiente: mensaje });
+    }
+
+    function obtenerPuntajeConsolidado() {
+      if (consolidadoLocal && Number.isFinite(Number(consolidadoLocal.score))) {
+        return Number(consolidadoLocal.score);
+      }
+      if (evaluacionActual && evaluacionActual.evaluated && Number.isFinite(Number(evaluacionActual.score))) {
+        return Number(evaluacionActual.score);
+      }
+      return null;
+    }
+
+    function construirRationale(calculo, accion) {
+      const respuestas = ESTANDARES_MINIMOS
+        .map(item => `${item.codigo}:${calculo.respuestas[item.codigo] || 'sin respuesta'}`)
+        .join(' | ');
+      const periodo = document.getElementById('periodoEvaluar')?.value || calculo.periodo || '-';
+      return `${accion} | Res. 0312 periodo ${periodo} | CIIU ${empresaActiva?.ciiu || '-'} | ARL ${calculo.arlCorrecta ? 'conforme' : 'inconsistente'} (${calculo.claseSeleccionada || 'sin clase'} vs Clase ${calculo.claseEsperada}) | ponderado ${calculo.base}% | penalización ${calculo.penalizacion}pp | ${respuestas}`;
+    }
+
+    async function sincronizarConsolidado(accion) {
+      const score = obtenerPuntajeConsolidado();
+      if (score === null) {
+        mostrarNotificacion('⚠️ Califique y consolide el puntaje antes de enviar la constancia.');
+        return null;
+      }
+      const calculo = consolidadoLocal || {
+        score,
+        base: score,
+        penalizacion: 0,
+        arlCorrecta: false,
+        claseSeleccionada: '',
+        claseSeleccionadaTexto: empresaActiva?.riesgoDetalle || `Clase ${empresaActiva?.riesgoEsperado || 'I'} (Riesgo sin verificar en sesión)`,
+        claseEsperada: empresaActiva?.riesgoEsperado || '',
+        ciiu: empresaActiva?.ciiu || '',
+        respuestas: {},
+        periodo: document.getElementById('periodoEvaluar')?.value || '2025',
+        fecha: evaluacionActual?.submittedAt
+      };
+      try {
+        const response = await fetch('https://simulador-sst.onrender.com/api/evaluations/risk-classification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            studentEmail: sesionUsuarioActual.email,
+            studentName: sesionUsuarioActual.nombre,
+            companyName: empresaActiva ? `${empresaActiva.nombre} (NIT: ${empresaActiva.nit})` : document.getElementById('califEmpresa')?.value || '',
+            riskClass: calculo.claseSeleccionadaTexto,
+            score,
+            rationale: construirRationale(calculo, accion),
+            period: calculo.periodo
+          })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || 'No se pudo sincronizar');
+        evaluacionActual = {
+          ...(evaluacionActual || {}),
+          evaluated: true,
+          score,
+          studentName: sesionUsuarioActual.nombre,
+          submittedAt: data.submission?.submittedAt || calculo.fecha
+        };
+        return data.submission || data;
+      } catch (err) {
+        console.error('Error al sincronizar consolidado:', err);
+        mostrarNotificacion('No se pudo sincronizar con el backend; se conserva el puntaje calculado localmente.');
+        return null;
+      }
+    }
+
+    async function enviarAuditoriaDocente() {
+      const score = obtenerPuntajeConsolidado();
+      if (score === null) {
+        mostrarNotificacion('⚠️ Primero consolide la calificación para enviarla a auditoría.');
+        return;
+      }
+      const enviado = await sincronizarConsolidado('Envío a auditoría docente');
+      if (enviado) {
+        mostrarNotificacion(`Evaluación y constancia sincronizadas en el panel docente (${score}%).`);
+      }
+    }
+
+    async function descargarCertificadoDinamico() {
+      const score = obtenerPuntajeConsolidado();
+      if (score === null) {
+        mostrarNotificacion('⚠️ Primero consolide la calificación para descargar el certificado.');
+        return;
+      }
+      await sincronizarConsolidado('Descarga de certificado oficial en PDF');
+      const student = sesionUsuarioActual.nombre || 'Estudiante';
+      const company = empresaActiva?.nombre || document.getElementById('certEmpresa')?.textContent || 'Organización sin definir';
+      const rad = `RAD-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}-SST`;
+      descargarCertificadoReal(student, company, 'Autoevaluación de Estándares Mínimos (Res. 0312)', String(score), rad);
+    }
+
+    async function consultarEvaluacionDinamica() {
+      const email = sesionUsuarioActual.email;
+      const certResp = document.getElementById('certResponsable');
 
       try {
         const res = await fetch(`https://simulador-sst.onrender.com/api/evaluations/summary?email=${encodeURIComponent(email)}`);
@@ -705,93 +997,34 @@
         const data = await res.json();
         evaluacionActual = data;
 
-        // Nombre del responsable real en sesión o BD
-        const responsableNombre = data.studentName || sesionUsuarioActual.nombre;
-        if (certResp) certResp.textContent = responsableNombre;
-
-        if (data.evaluated && data.score !== null && data.score !== undefined) {
-          const scoreNum = Number(data.score);
-          if (certScore) certScore.textContent = `${scoreNum}%`;
-
-          // Valoración según Resolución 0312 de 2019
-          // > 85%: Aceptable (Verde)
-          // 60% a 85%: Moderadamente Aceptable (Amarillo / Naranja)
-          // < 60%: Crítico (Rojo)
-          if (scoreNum > 85) {
-            if (certScoreLabel) certScoreLabel.textContent = 'Aceptable';
-            if (certScoreCircle) {
-              certScoreCircle.style.background = '#ecfdf5';
-              certScoreCircle.style.borderColor = '#10b981';
-              certScoreCircle.style.color = '#065f46';
-            }
-            if (certEstadoLegal) {
-              certEstadoLegal.textContent = 'Aceptable (Cumplimiento Legal Verificado)';
-              certEstadoLegal.style.color = '#059669';
-            }
-          } else if (scoreNum >= 60) {
-            if (certScoreLabel) certScoreLabel.textContent = 'Moderado';
-            if (certScoreCircle) {
-              certScoreCircle.style.background = '#fffbeb';
-              certScoreCircle.style.borderColor = '#f59e0b';
-              certScoreCircle.style.color = '#b45309';
-            }
-            if (certEstadoLegal) {
-              certEstadoLegal.textContent = 'Moderadamente Aceptable (Plan de Mejora a 6 Meses)';
-              certEstadoLegal.style.color = '#d97706';
-            }
-          } else {
-            if (certScoreLabel) certScoreLabel.textContent = 'Crítico';
-            if (certScoreCircle) {
-              certScoreCircle.style.background = '#fef2f2';
-              certScoreCircle.style.borderColor = '#ef4444';
-              certScoreCircle.style.color = '#b91c1c';
-            }
-            if (certEstadoLegal) {
-              certEstadoLegal.textContent = 'Crítico (Plan de Mejora Inmediato a 3 Meses)';
-              certEstadoLegal.style.color = '#dc2626';
-            }
-          }
-
-          if (certFecha) {
-            certFecha.textContent = data.submittedAt 
-              ? new Date(data.submittedAt).toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' })
-              : new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
-          }
+        if (consolidadoLocal) {
+          renderizarCertificado(consolidadoLocal.score, {
+            responsable: data.studentName || sesionUsuarioActual.nombre,
+            fecha: consolidadoLocal.fecha,
+            consolidado: consolidadoLocal
+          });
+        } else if (data.evaluated && data.score !== null && data.score !== undefined) {
+          renderizarCertificado(Number(data.score) || 0, {
+            responsable: data.studentName || sesionUsuarioActual.nombre,
+            fecha: data.submittedAt
+          });
         } else {
-          // Si el estudiante aún no ha completado la calificación: muestra 0% y 'Pendiente por evaluar'
-          if (certScore) certScore.textContent = '0%';
-          if (certScoreLabel) certScoreLabel.textContent = 'Pendiente';
-          if (certScoreCircle) {
-            certScoreCircle.style.background = '#f8fafc';
-            certScoreCircle.style.borderColor = '#94a3b8';
-            certScoreCircle.style.color = '#475569';
-          }
-          if (certEstadoLegal) {
-            certEstadoLegal.textContent = 'Pendiente por evaluar (Sin registro previo en PostgreSQL)';
-            certEstadoLegal.style.color = '#64748b';
-          }
-          if (certFecha) certFecha.textContent = 'Pendiente de radicación';
+          renderizarCertificadoPendiente('Pendiente por evaluar (Sin registro previo en PostgreSQL)');
+          if (certResp) certResp.textContent = data.studentName || sesionUsuarioActual.nombre;
         }
       } catch (err) {
         console.warn('Backend offline o sin entrega previa. Mostrando estado por defecto:', err);
-        if (certResp) certResp.textContent = sesionUsuarioActual.nombre;
-        if (certScore) certScore.textContent = '0%';
-        if (certScoreLabel) certScoreLabel.textContent = 'Pendiente';
-        if (certEstadoLegal) {
-          certEstadoLegal.textContent = 'Pendiente por evaluar';
-          certEstadoLegal.style.color = '#64748b';
+        if (consolidadoLocal) {
+          renderizarCertificado(consolidadoLocal.score, {
+            responsable: sesionUsuarioActual.nombre,
+            fecha: consolidadoLocal.fecha,
+            consolidado: consolidadoLocal
+          });
+        } else {
+          renderizarCertificadoPendiente('Pendiente por evaluar');
+          if (certResp) certResp.textContent = sesionUsuarioActual.nombre;
         }
       }
-    }
-
-    // Descarga del certificado oficial usando los datos reales dinámicos
-    function descargarCertificadoDinamico() {
-      const student = sesionUsuarioActual.nombre || 'Estudiante';
-      const company = document.getElementById('certEmpresa')?.textContent || 'Empresa Metalmecánica S.A.';
-      const score = (evaluacionActual && evaluacionActual.evaluated) ? String(evaluacionActual.score) : '0';
-      const rad = `RAD-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}-SST`;
-
-      descargarCertificadoReal(student, company, 'Autoevaluación de Estándares Mínimos (Res. 0312)', score, rad);
     }
 
     // Navegación interactiva de pestañas del menú lateral
@@ -839,15 +1072,65 @@
       }
     }
 
-    // Selector interactivo de entidades
-    function cambiarEntidad(nombreEntidad) {
-      document.getElementById('currentBreadcrumbEmpresa').textContent = nombreEntidad.split(' (')[0];
-      const califInput = document.getElementById('califEmpresa');
-      if (califInput) califInput.value = nombreEntidad;
-      const certEmp = document.getElementById('certEmpresa');
-      if (certEmp) certEmp.textContent = nombreEntidad.split(' (')[0];
+    function cargarSelectorEmpresas() {
+      const selector = document.getElementById('entitySelector');
+      if (!selector) return;
+      selector.innerHTML = EMPRESAS_ACTIVAS
+        .map(empresa => `<option value="${empresa.id}">${empresa.nombre} (NIT: ${empresa.nit})</option>`)
+        .join('');
+      cambiarEntidad(EMPRESAS_ACTIVAS[0].id, true);
+      renderizarTablaEstandares();
+    }
 
-      mostrarNotificacion(`Empresa activa actualizada a: ${nombreEntidad}`);
+    function renderizarTablaEstandares() {
+      const tbody = document.getElementById('estandaresTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = ESTANDARES_MINIMOS.map(item => `
+        <tr>
+          <td><strong>${item.codigo}</strong></td>
+          <td>${item.titulo}</td>
+          <td>${item.peso}%</td>
+          <td>
+            <select class="form-select" data-codigo="${item.codigo}" required="">
+              <option value="">Seleccione...</option>
+              <option value="cumple">Cumple</option>
+              <option value="nocumple">No cumple</option>
+              <option value="noaplica">No aplica</option>
+            </select>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function cambiarEntidad(idEmpresa, esInicial = false) {
+      empresaActiva = EMPRESAS_ACTIVAS.find(empresa => empresa.id === idEmpresa) || EMPRESAS_ACTIVAS[0];
+      const textoEmpresa = `${empresaActiva.nombre} (NIT: ${empresaActiva.nit})`;
+      const breadcrumb = document.getElementById('currentBreadcrumbEmpresa');
+      if (breadcrumb) breadcrumb.textContent = empresaActiva.nombre;
+
+      const campos = {
+        califEmpresa: textoEmpresa,
+        califCiiu: empresaActiva.ciiu,
+        califTrabajadores: empresaActiva.trabajadores,
+        califSede: empresaActiva.sede
+      };
+      Object.entries(campos).forEach(([id, valor]) => {
+        const campo = document.getElementById(id);
+        if (campo) campo.value = valor;
+      });
+
+      const referenciaCiiu = document.getElementById('riesgoCiiuReferencia');
+      if (referenciaCiiu) referenciaCiiu.textContent = `CIIU ${empresaActiva.ciiu.split(' - ')[0]}`;
+
+      if (!esInicial) {
+        consolidadoLocal = null;
+        limpiarSeleccionRiesgo();
+        document.querySelectorAll('#estandaresTableBody select').forEach(select => {
+          select.value = '';
+        });
+        renderizarCertificadoPendiente('Pendiente por evaluar (empresa activa actualizada)');
+        mostrarNotificacion(`Empresa activa actualizada a: ${textoEmpresa}`);
+      }
     }
 
     // Manejo de formulario Guardar Responsable
@@ -863,7 +1146,43 @@
       }, 1200);
     }
 
-    // Manejo de la selección interactiva de Clase de Riesgo (I a V)
+    function limpiarSeleccionRiesgo() {
+      document.querySelectorAll('#riskSelectorContainer .risk-card').forEach(card => {
+        card.style.borderColor = '#e2e8f0';
+        card.style.background = '#f8fafc';
+        card.style.boxShadow = 'none';
+        card.style.transform = 'scale(1)';
+      });
+      const entrada = document.getElementById('selectedRiskClass');
+      if (entrada) entrada.value = '';
+      const badge = document.getElementById('riskSelectedBadge');
+      if (badge) {
+        badge.textContent = 'Sin seleccionar';
+        badge.style.background = '#f1f5f9';
+        badge.style.color = '#64748b';
+      }
+      const feedback = document.getElementById('riskFeedbackText');
+      if (feedback) {
+        feedback.style.display = 'none';
+        feedback.textContent = '';
+      }
+    }
+
+    function actualizarFeedbackRiesgo(clase) {
+      const feedback = document.getElementById('riskFeedbackText');
+      if (!feedback || !empresaActiva) return;
+      const claseElegida = obtenerClaseRoman(clase);
+      const esCorrecta = claseElegida === empresaActiva.riesgoEsperado;
+      feedback.style.display = 'block';
+      if (esCorrecta) {
+        feedback.innerHTML = `✅ <strong>Clasificación conforme:</strong> Para el CIIU ${empresaActiva.ciiu} corresponde ${empresaActiva.riesgoDetalle}. Sin penalización normativa.`;
+        feedback.style.color = '#059669';
+      } else {
+        feedback.innerHTML = `⚠️ <strong>Inconsistencia con el CIIU:</strong> Para ${empresaActiva.ciiu} corresponde ${empresaActiva.riesgoDetalle}; seleccionó ${clase}. Al consolidar se restarán 10 puntos porcentuales.`;
+        feedback.style.color = '#b45309';
+      }
+    }
+
     function seleccionarClaseRiesgo(clase, tarifa, elemento) {
       document.querySelectorAll('#riskSelectorContainer .risk-card').forEach(card => {
         card.style.borderColor = '#e2e8f0';
@@ -877,25 +1196,70 @@
       elemento.style.boxShadow = '0 4px 12px rgba(37, 99, 235, 0.15)';
       elemento.style.transform = 'scale(1.02)';
 
-      document.getElementById('selectedRiskClass').value = clase;
+      const entrada = document.getElementById('selectedRiskClass');
+      if (entrada) entrada.value = clase;
 
+      const claseRoman = obtenerClaseRoman(clase);
       const badge = document.getElementById('riskSelectedBadge');
-      badge.textContent = `${clase.split(' ')[0]} • Tarifa cotiz. ${tarifa}`;
-      badge.style.background = '#dbeafe';
-      badge.style.color = '#1e40af';
-
-      const feedback = document.getElementById('riskFeedbackText');
-      feedback.style.display = 'block';
-      if (clase.includes('IV')) {
-        feedback.innerHTML = `✅ <strong>Selección conforme a la actividad económica:</strong> Industria metalmecánica con tratamiento térmico y galvanoplastia aplica <strong>Clase IV</strong>. Requiere 60 estándares mínimos obligatorios.`;
-        feedback.style.color = '#059669';
-      } else {
-        feedback.innerHTML = `ℹ️ <strong>Verificación técnica:</strong> Ha seleccionado ${clase}. El motor cotejará esta clasificación con la actividad CIIU 2592`;
-        feedback.style.color = '#d97706';
+      if (badge) {
+        badge.textContent = `Clase ${claseRoman} • Tarifa cotiz. ${tarifa}`;
+        badge.style.background = '#dbeafe';
+        badge.style.color = '#1e40af';
       }
+
+      actualizarFeedbackRiesgo(clase);
     }
 
-    // Manejo de formulario Calificación de Estándares con guardado real en PostgreSQL
+    function actualizarPeriodoCertificado(periodo) {
+      const destino = document.getElementById('certPeriodo');
+      if (destino) destino.textContent = periodo;
+      if (consolidadoLocal) consolidadoLocal.periodo = periodo;
+    }
+
+    function calcularPuntaje() {
+      const respuestas = {};
+      const incompletos = [];
+      ESTANDARES_MINIMOS.forEach(item => {
+        const select = document.querySelector(`#estandaresTableBody select[data-codigo="${item.codigo}"]`);
+        const valor = select?.value || '';
+        if (!valor) incompletos.push(item.codigo);
+        respuestas[item.codigo] = valor;
+      });
+
+      if (incompletos.length) {
+        mostrarNotificacion(`⚠️ Responda todos los ítems antes de consolidar. Pendientes: ${incompletos.join(', ')}`);
+        const primero = document.querySelector(`#estandaresTableBody select[data-codigo="${incompletos[0]}"]`);
+        if (primero) primero.focus();
+        return null;
+      }
+
+      const aplicables = ESTANDARES_MINIMOS.filter(item => respuestas[item.codigo] !== 'noaplica');
+      const pesoAplicable = aplicables.reduce((total, item) => total + item.peso, 0);
+      const pesoCumplido = aplicables
+        .filter(item => respuestas[item.codigo] === 'cumple')
+        .reduce((total, item) => total + item.peso, 0);
+      const base = pesoAplicable > 0 ? Math.round((pesoCumplido / pesoAplicable) * 100) : 0;
+
+      const claseSeleccionadaTexto = document.getElementById('selectedRiskClass')?.value || '';
+      const claseSeleccionada = obtenerClaseRoman(claseSeleccionadaTexto);
+      const claseEsperada = empresaActiva?.riesgoEsperado || '';
+      const arlCorrecta = claseSeleccionada === claseEsperada;
+      const penalizacion = arlCorrecta ? 0 : 10;
+      const score = Math.round(Math.max(0, Math.min(100, base - penalizacion)));
+
+      return {
+        score,
+        base,
+        penalizacion,
+        arlCorrecta,
+        claseSeleccionada,
+        claseSeleccionadaTexto,
+        claseEsperada,
+        ciiu: empresaActiva?.ciiu || '',
+        respuestas
+      };
+    }
+
     async function ejecutarCalificacion(event) {
       event.preventDefault();
 
@@ -906,47 +1270,36 @@
         return;
       }
 
-      const periodo = document.getElementById('periodoEvaluar').value;
-      const empresa = document.getElementById('califEmpresa')?.value || 'Empresa Metalmecánica S.A.';
-      document.getElementById('certPeriodo').textContent = periodo;
-
-      mostrarNotificacion('Guardando calificación y enviando autoevaluación a PostgreSQL...');
-
-      // Cálculo del puntaje dinámico según la clase de riesgo y rigurosidad técnica:
-      // Clase IV en metalmecánica = 92.5% (Aceptable)
-      // Otras clases de riesgo = 70% (Moderadamente Aceptable)
-      const calculatedScore = selectedRisk.includes('IV') ? 92.5 : 70;
-
-      try {
-        const response = await fetch('https://simulador-sst.onrender.com/api/evaluations/risk-classification', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            studentEmail: sesionUsuarioActual.email,
-            studentName: sesionUsuarioActual.nombre,
-            companyName: empresa,
-            riskClass: selectedRisk,
-            score: calculatedScore,
-            rationale: `Clasificación realizada en autoevaluación Res. 0312 para periodo fiscal ${periodo}`,
-            period: periodo
-          })
-        });
-
-        const data = await response.json();
-        if (response.ok) {
-          mostrarNotificacion(`¡Calificación registrada en PostgreSQL (${calculatedScore}%)! Actualizando certificado...`);
-        } else {
-          mostrarNotificacion(`Respuesta guardada con éxito.`);
-        }
-      } catch (err) {
-        console.error('Error registrando calificación de riesgo:', err);
-        mostrarNotificacion('Calificación guardada localmente.');
+      if (!document.getElementById('checkConsentimiento')?.checked) {
+        mostrarNotificacion('⚠️ Acepte la declaración bajo gravedad de juramento para consolidar.');
+        return;
       }
 
-      // Refrescar inmediatamente el consolidado dinámico
+      const calculo = calcularPuntaje();
+      if (!calculo) return;
+
+      const periodo = document.getElementById('periodoEvaluar')?.value || '2025';
+      consolidadoLocal = {
+        ...calculo,
+        empresa: empresaActiva?.nombre || '',
+        nit: empresaActiva?.nit || '',
+        periodo,
+        fecha: new Date().toISOString()
+      };
+      document.getElementById('certPeriodo').textContent = periodo;
+      renderizarCertificado(calculo.score, {
+        responsable: sesionUsuarioActual.nombre,
+        fecha: consolidadoLocal.fecha,
+        consolidado: consolidadoLocal
+      });
+
+      const enviado = await sincronizarConsolidado('Calificación y consolidación de puntaje');
+      if (enviado) {
+        mostrarNotificacion(`¡Calificación consolidada y registrada (${calculo.score}%)!`);
+      }
+
       await consultarEvaluacionDinamica();
 
-      // Llevar automáticamente a consultar certificado
       setTimeout(() => {
         const itemConsultar = document.querySelector('[data-tab="seccion-consultar"]');
         navegarTab('seccion-consultar', itemConsultar);
@@ -1008,9 +1361,9 @@
       mostrarNotificacion('Generando Certificado Oficial en PDF con PDFKit...');
       const params = new URLSearchParams({
         student: student || sesionUsuarioActual.nombre || 'Estudiante',
-        company: company || 'Empresa Metalmecánica S.A.',
+        company: company || 'Organización sin definir',
         module: module || 'SG-SST Res. 0312',
-        score: score || '90',
+        score: score || '0',
         rad: rad || `RAD-${new Date().getFullYear()}-SST`
       });
       window.location.href = `${window.SimulSST.API_BASE_URL}/api/reports/certificate/pdf?${params.toString()}`;
